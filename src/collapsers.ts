@@ -4,9 +4,9 @@
 export function toggleCollapser(element: JQuery<HTMLElement>): void {
     element.toggleClass("expanded");
     if (element.hasClass("expanded")) {
-        element.siblings(".collapser-content").css("display", "block");
+        element.next().css("display", "block");
     } else {
-        element.siblings(".collapser-content").removeAttr("style");
+        element.next().removeAttr("style");
     }
 }
 
