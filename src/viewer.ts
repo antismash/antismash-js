@@ -436,7 +436,7 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
         }
         selectOrfs(geneElement);
     }
-    toggleCDSCollapserMatchingElement(geneElement);
+    toggleCDSCollapserMatchingElement(geneElement, "cds");
 }
 
 function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
@@ -457,6 +457,7 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
         deselectOrfs();
         selectOrfs($(this));
     }
+    toggleCDSCollapserMatchingElement($(this), "cds");
 }
 
 function createHandlers(): void {
@@ -501,10 +502,10 @@ function toggleSuperclusterCollapsers(cluster: ICluster): void {
     toggleCollapser($(`.collapser-level-supercluster.collapser-target-SC${target}`));
 }
 
-function toggleCDSCollapserMatchingElement(geneElement: JQuery<HTMLElement>): void {
+function toggleCDSCollapserMatchingElement(geneElement: JQuery<HTMLElement>, level: string): void {
     const node: d3.Selection<any, IOrf, any, any> = d3selectAll(geneElement.toArray());
     const data: IOrf = node.datum();
-    toggleCollapser($(`.collapser-target-${tag_to_id(data.locus_tag)}`).not(".collapser-level-none"));
+    toggleCollapser($(`.collapser-target-${tag_to_id(data.locus_tag)}.collapser-level-${level}`));
 }
 
 function hideCDSLevelCollapsers(): void {
@@ -517,7 +518,8 @@ function select_by_range(start: number, end: number): void {
         const data: IOrf = node.datum();
         if (start <= data.start && data.end <= end) {
             selectOrfs($(this));
-            toggleCDSCollapserMatchingElement($(this));
+            toggleCDSCollapserMatchingElement($(this), "supercluster");
+            toggleCDSCollapserMatchingElement($(this), "cluster");
         }
     });
 }
