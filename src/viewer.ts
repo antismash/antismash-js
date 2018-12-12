@@ -309,7 +309,7 @@ function createMinimap(chart: any, regionStart: number, regionEnd: number,
             .attr("x", (d: IOrf) => minimapScale(d.start))
             .attr("y", centerline - orfHeight / 2)
             .attr("class", (d: IOrf) => `svgene-type-${d.type} ${SELECTED_ORF_CLASS} svgene-minimap-orf`)
-            .attr("id", (d: IOrf) => `svgene-minimap-orf-${d.locus_tag}`);
+            .attr("id", (d: IOrf) => `svgene-minimap-orf-${tag_to_id(d.locus_tag)}`);
 
     const scaledRegionStart = minimapScale(regionStart);
     const scaledRegionEnd = minimapScale(regionEnd);
@@ -418,7 +418,7 @@ function sort_biosynthetic_orfs_last(a: IOrf, b: IOrf): number {
 }
 
 function tag_to_id(tag: string): string {
-    return tag.replace("/(:|\.)/g", "-").replace("/-svgeneorf/g", "_orf");
+    return tag.replace(/(:|\.)/g, "-").replace(/-svgeneorf/g, "_orf");
 }
 
 function multi_select(geneElement: JQuery<HTMLElement>): void {
@@ -501,7 +501,7 @@ function toggleSuperclusterCollapsers(cluster: ICluster): void {
 function toggleCDSCollapserMatchingElement(geneElement: JQuery<HTMLElement>): void {
     const node: d3.Selection<any, IOrf, any, any> = d3selectAll(geneElement.toArray());
     const data: IOrf = node.datum();
-    toggleCollapser($(`.collapser-target-${data.locus_tag}`).not(".collapser-level-none"));
+    toggleCollapser($(`.collapser-target-${tag_to_id(data.locus_tag)}`).not(".collapser-level-none"));
 }
 
 function hideCDSLevelCollapsers(): void {
@@ -525,7 +525,7 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
     d3orfs.attr("opacity", opacity)
         .classed(SELECTED_ORF_CLASS, selected)
         .each((data: IOrf) => {
-            d3selectAll(`#svgene-minimap-orf-${data.locus_tag}`)
+            d3selectAll(`#svgene-minimap-orf-${tag_to_id(data.locus_tag)}`)
                 .attr("opacity", opacity)
                 .classed(SELECTED_ORF_CLASS, selected);
         });
