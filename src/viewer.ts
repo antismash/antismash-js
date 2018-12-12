@@ -440,6 +440,9 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
 }
 
 function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
+    if (!displayedRegion) {
+        return;
+    }
     if (ev.ctrlKey) {
         multi_select($(this));
         return;
@@ -447,7 +450,7 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
 
     const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
     const data: IOrf = node.datum();
-    $(".focus-panel-content").html(data.description).find(".collapser").click(toggleCollapserHandler);
+    $(`.focus-panel-content-${displayedRegion.anchor}`).html(data.description).find(".collapser").click(toggleCollapserHandler);
     if (node.classed(SELECTED_ORF_CLASS) && $(`.svgene-orf.${SELECTED_ORF_CLASS}`).length === 1) {
         selectOrfs();
     } else {
