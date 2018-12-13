@@ -111,10 +111,6 @@ function map_type_to_desc(type: string): string {
     }
 }
 
-function copyToClipboard(text: string): void {
-    window.prompt("Copy to clipboard: Ctrl+C, Enter", text);
-}
-
 export function start(regions: any, details: any) {
     createRecordOverviews(regions);
     allRegions = regions;

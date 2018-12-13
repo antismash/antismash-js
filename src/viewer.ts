@@ -23,6 +23,7 @@ import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {event as d3event, select as d3select, selectAll as d3selectAll} from "d3-selection";
 import "d3-transition";  // modifies select and selectAll
 
+import {copyToClipboard} from "./clipboard.js";
 import {toggleCollapser, toggleCollapserHandler} from "./collapsers.js";
 import {ICluster, IOrf, IRegion, ITTACodon} from "./dataStructures.js";
 
@@ -450,7 +451,9 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
 
     const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
     const data: IOrf = node.datum();
-    $(`.focus-panel-content-${displayedRegion.anchor}`).html(data.description).find(".collapser").click(toggleCollapserHandler);
+    const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
+    panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
+    $(".clipboard-copy", panelContent).off("click").click(copyToClipboard);
     if (node.classed(SELECTED_ORF_CLASS) && $(`.svgene-orf.${SELECTED_ORF_CLASS}`).length === 1) {
         selectOrfs();
     } else {
