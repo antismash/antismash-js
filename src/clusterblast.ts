@@ -4,7 +4,7 @@
 let activeTooltip: JQuery<HTMLElement> | null = null;
 
 export function init(parentID: string) {
-    $(`#${parentID}.clusterblast-orf`).each(function() {
+    $(`#${parentID} .clusterblast-orf`).each(function() {
         const orf = $(this);
         setLabel(orf, parentID);
         setTooltip(orf, parentID);
