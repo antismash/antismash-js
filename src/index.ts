@@ -3,6 +3,7 @@
 
 import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
+import {setupDetails} from "./detailsSection.js";
 import {drawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
@@ -168,6 +169,7 @@ export function start(regions: any, details: any) {
 
     switchToRegion();
     drawStructures();
+    setupDetails(regions.order);
 
     $(".collapser").click(toggleCollapserHandler);
 }
