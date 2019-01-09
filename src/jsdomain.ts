@@ -9,7 +9,6 @@ import {IDomain, IOrf, IRegion} from "./dataStructures.js";
 let activeTooltip: JQuery<HTMLElement> | null;
 
 const jsdomain = {
-    label_height: 30,
     text_height: 14,
     unique_id: 0,
     version: "0.0.1",
@@ -17,55 +16,71 @@ const jsdomain = {
 
 export function drawDomains(id: string, region: IRegion, height: number): void {
     const container = d3select(`#${id}`);
-    const singleOrfHeight = height + jsdomain.label_height;
+    const singleOrfHeight = height;
+    const interOrfPadding = 10;
     const width = $(`#${id}`).parent().width() || 700;
     container.selectAll("svg.jsdomain-svg").remove();
-    const realHeight = singleOrfHeight * region.orfs.length + 10;
+    const realHeight = (singleOrfHeight + interOrfPadding) * region.orfs.length + 10;
     const chart = container.append("svg")
         .attr("height", realHeight)
         .attr("width", "100%")
-        .attr("viewbox", `-1 0 ${width} ${realHeight}`)
+        .attr("viewbox", `-1 -1 ${width} ${realHeight}`)
         .attr("class", "jsdomain-svg");
 
     let maxOrfLength = 0;
+    let maxOrfName = 0;
     for (const orf of region.orfs) {
         maxOrfLength = Math.max(maxOrfLength, orf.sequence.length);
+        maxOrfName = Math.max(maxOrfName, orf.id.length);
     }
+
+
+    const x = d3scaleLinear()
+      .domain([1, maxOrfLength])
+      .range([maxOrfName * 10, width]);  // allows space for labels
 
     for (let i = 0; i < region.orfs.length; i++) {
         const orf = region.orfs[i];
         const idx = jsdomain.unique_id++;
-        const x = d3scaleLinear()
-          .domain([1, maxOrfLength])
-          .range([0, width]);
-        chart.append("text")
+        const currentOrfY = (singleOrfHeight + interOrfPadding) * i + 2; // +2 to fit the first
+
+        if (i % 2 == 1) {  // alternate background colour
+            chart.append("rect")
+                .attr("x", 0)
+                .attr("y", currentOrfY - interOrfPadding / 2)
+                .attr("width", width)
+                .attr("height", singleOrfHeight + interOrfPadding)
+                .attr("fill", "#f1f1f1")
+                .attr("stroke-width", 0);
+        }
+        const text = chart.append("text")
             .text(orf.id)
-            .attr("x", 5)
-            .attr("y", (singleOrfHeight * i) + jsdomain.label_height - 5)
+            .attr("x", 0)
+            .attr("y", currentOrfY + height * 0.7)
             .attr("class", "jsdomain-orflabel");
 
         const group = chart.append("g");
         group.append("line")
-          .attr("x1", 0)
-          .attr("y1", (singleOrfHeight * i) + jsdomain.label_height + (height / 2))
+          .attr("x1", x(0))
+          .attr("y1", currentOrfY + (height / 2))
           .attr("x2", x(orf.sequence.length))
-          .attr("y2", (singleOrfHeight * i) + jsdomain.label_height + (height / 2))
+          .attr("y2", currentOrfY + (height / 2))
           .attr("class", "jsdomain-line");
 
         group.selectAll("rect.jsdomain-domain")
             .data(orf.domains)
         .enter().append("rect")
             .attr("x", (d) => x(d.start))
-            .attr("y", (singleOrfHeight * i) + jsdomain.label_height)
+            .attr("y", currentOrfY)
             .attr("rx", 17)
             .attr("ry", 17)
             .attr("width", (d) => x(d.end) - x(d.start))
-            .attr("height", singleOrfHeight - jsdomain.label_height)
+            .attr("height", singleOrfHeight)
             .attr("id", (d, j) => `details-orf-${idx}-${j}-domain`)
             .attr("class", "jsdomain-domain ")
             .attr("fill", (d) => getFillColor(d.type))
             .attr("stroke", (d) => getStrokeColor(d.type))
-            .attr("stroke-width", 2);
+            .attr("stroke-width", 1);
 
         group.selectAll("text.jsdomain-text")
             .data(orf.domains)
@@ -73,7 +88,7 @@ export function drawDomains(id: string, region: IRegion, height: number): void {
             .text((d) => getLabel(d.type))
             .attr("x", (d) => x((d.start + d.end) / 2))
             .attr("text-anchor", "middle")
-            .attr("y", (singleOrfHeight * i) + jsdomain.label_height * 1.25  + height / 2)
+            .attr("y", currentOrfY + height * 0.7)
             .attr("id", (d, j) => `details-orf-${idx}-${j}-text`)
             .attr("class", "jsdomain-text")
             .attr("font-size", jsdomain.text_height)

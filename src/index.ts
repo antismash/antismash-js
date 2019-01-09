@@ -39,7 +39,7 @@ function switchToRegion() {
             drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
         }
         if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(`${anchor}-details-svg`, detailsData[anchor], 40);
+            drawDomains(`${anchor}-details-svg`, detailsData[anchor], 25);
         }
         $(`#${anchor} .clusterblast-selector`).change();
     }, 1);
