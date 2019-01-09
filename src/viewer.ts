@@ -444,6 +444,9 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     if (!displayedRegion) {
         return;
     }
+    // if a legend button is active, remove that
+    $(".legend-selected").removeClass("legend-selected");
+
     if (ev.ctrlKey) {
         multi_select($(this));
         return;
@@ -516,6 +519,7 @@ function hideCDSLevelCollapsers(): void {
 }
 
 function select_by_range(start: number, end: number): void {
+    $(".legend-selected").removeClass("legend-selected");
     $(".svgene-orf").each(function(index) {
         const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
         const data: IOrf = node.datum();
