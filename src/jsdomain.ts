@@ -15,13 +15,16 @@ const jsdomain = {
     version: "0.0.1",
 };
 
-export function drawDomains(id: string, region: IRegion, height: number, width: number): void {
+export function drawDomains(id: string, region: IRegion, height: number): void {
     const container = d3select(`#${id}`);
     const singleOrfHeight = height + jsdomain.label_height;
+    const width = $(`#${id}`).parent().width() || 700;
     container.selectAll("svg.jsdomain-svg").remove();
+    const realHeight = singleOrfHeight * region.orfs.length + 10;
     const chart = container.append("svg")
-        .attr("height", singleOrfHeight * region.orfs.length + 10)
-        .attr("width", width)
+        .attr("height", realHeight)
+        .attr("width", "100%")
+        .attr("viewbox", `-1 0 ${width} ${realHeight}`)
         .attr("class", "jsdomain-svg");
 
     let maxOrfLength = 0;
