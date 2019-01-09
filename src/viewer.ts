@@ -618,9 +618,17 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     start = start - 1;
     end = end + 1;
     scale.domain([start, end]);
+    const midpoint = start + (end - start) / 2;
+
     const orfs: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-orf,.svgene-orf-bg");
     orfs.transition().duration(duration)
         .attr("points", (d) => geneArrowPoints(d));
+
+    const orfLabels: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-locustag");
+    orfLabels.transition().duration(duration)
+        .attr("x", (d: IOrf) => d.start < midpoint ? scale(d.start) : scale(d.end))
+        .attr("text-anchor", (d: IOrf) => d.start < midpoint ? "start" : "end");
+
     const interactionZones: d3.Selection<any, ICluster, any, any> = d3selectAll(".cluster-background");
     interactionZones.transition().duration(duration)
         .attr("width", (d) => scale(d.neighbouring_end) - scale(d.neighbouring_start))
