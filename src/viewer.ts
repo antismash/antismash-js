@@ -117,12 +117,12 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
             }
             select_by_range(d.neighbouring_start, d.neighbouring_end);
             toggleSuperclusterCollapsers(d);
-            })
-            .on("dblclick", (d: ICluster) => {
-                select_by_range(d.neighbouring_start, d.neighbouring_end);
-                toggleSuperclusterCollapsers(d);
-                change_view(d.neighbouring_start, d.neighbouring_end);
-            });
+        })
+        .on("dblclick", (d: ICluster) => {
+            select_by_range(d.neighbouring_start, d.neighbouring_end);
+            toggleSuperclusterCollapsers(d);
+            change_view(d.neighbouring_start, d.neighbouring_end);
+        });
     // background
     clusterBars.append("rect")
         .attr("width", (d) => scale(d.neighbouring_end) - scale(d.neighbouring_start))
