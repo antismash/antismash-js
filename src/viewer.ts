@@ -322,6 +322,7 @@ function createMinimap(chart: any, regionStart: number, regionEnd: number,
         .attr("y", centerline - minimapHeight / 2)
         .attr("width", minimapScale(regionEnd) - minimapScale(regionStart))
         .attr("height", minimapHeight)
+        .style("cursor", "grab")
         .attr("id", `svgene-minimap-window-${displayedRegion.anchor}`)
         .attr("opacity", "0.2")
         .style("fill", "blue")
