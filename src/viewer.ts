@@ -33,6 +33,13 @@ const VERSION: string = "0.0.1";
 
 const SELECTED_ORF_CLASS = "svgene-selected-orf";
 
+export function locusToFullId(locusTag: string): string {
+    if (!displayedRegion) {
+        return `${tag_to_id(locusTag)}`;
+    }
+    return `u${uniqueID - 1}-region${displayedRegion.idx}-${tag_to_id(locusTag)}`;
+}
+
 function geneArrowPoints(orf: IOrf): string {
     const upper: number = orfY + LABEL_HEIGHT + verticalOffset;
     const lower: number = orfY + LABEL_HEIGHT + HEIGHT - verticalOffset;
