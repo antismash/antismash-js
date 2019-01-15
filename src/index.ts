@@ -4,7 +4,7 @@
 import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {setupDetails} from "./detailsSection.js";
-import {drawDomains} from "./jsdomain.js";
+import {createButtonHandlers, drawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawRegion} from "./viewer.js";
@@ -168,6 +168,7 @@ export function start(regions: any, details: any) {
     $(".cluster-rules-header").click(toggle_cluster_rules);
 
     switchToRegion();
+    createButtonHandlers();
     drawStructures();
     setupDetails(regions.order);
 

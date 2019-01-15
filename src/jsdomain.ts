@@ -2,9 +2,10 @@
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
 import {scaleLinear as d3scaleLinear} from "d3-scale";
-import {select as d3select} from "d3-selection";
+import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 
 import {IDomain, IOrf, IRegion} from "./dataStructures.js";
+import {locusToFullId} from "./viewer.js";
 
 let activeTooltip: JQuery<HTMLElement> | null;
 
@@ -14,12 +15,62 @@ const jsdomain = {
     version: "0.0.1",
 };
 
+function addOrfDomainsToSVG(chart: any, orf: IOrf, position: number,
+                            uniqueIndex: number, interOrfPadding: number,
+                            singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
+    const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 2; // +2 to fit the first
+    const group = chart.append("g").attr("class", "domain-group");
+    // label
+    group.append("text")
+        .text(orf.id)
+        .attr("x", 0)
+        .attr("y", currentOrfY + singleOrfHeight * 0.7)
+        .attr("class", "jsdomain-orflabel");
+    // centerline
+    group.append("line")
+      .attr("y1", currentOrfY + (singleOrfHeight / 2))
+      .attr("y2", currentOrfY + (singleOrfHeight / 2))
+      .attr("x1", scale(0))
+      .attr("x2", scale(orf.sequence.length))
+      .attr("class", "jsdomain-line");
+
+    // individual domains
+    group.selectAll("rect.jsdomain-domain")
+        .data(orf.domains)
+    .enter().append("rect")
+        .attr("x", (d: IOrf) => scale(d.start))
+        .attr("y", currentOrfY)
+        .attr("rx", 17)
+        .attr("ry", 17)
+        .attr("width", (d: IOrf) => scale(d.end) - scale(d.start))
+        .attr("height", singleOrfHeight)
+        .attr("data-id", (d: IOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
+        .attr("class", "jsdomain-domain")
+        .attr("fill", (d: IOrf) => getFillColor(d.type))
+        .attr("stroke", (d: IOrf) => getStrokeColor(d.type))
+        .attr("stroke-width", 1);
+
+    // individual domain text
+    group.selectAll("text.jsdomain-text")
+        .data(orf.domains)
+    .enter().append("text")
+        .text((d: IOrf) => getLabel(d.type))
+        .attr("x", (d: IOrf) => scale((d.start + d.end) / 2))
+        .attr("text-anchor", "middle")
+        .attr("y", currentOrfY + singleOrfHeight * 0.7)
+        .attr("data-id", (d: IOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
+        .attr("class", "jsdomain-text")
+        .attr("font-size", jsdomain.text_height)
+        .attr("font-weight", "bold");
+}
+
 export function drawDomains(id: string, region: IRegion, height: number): void {
     const container = d3select(`#${id}`);
     const singleOrfHeight = height;
     const interOrfPadding = 10;
-    const width = $(`#${id}`).parent().width() || 700;
+    const width = $(`#${id}`).width() || 700;
     container.selectAll("svg.jsdomain-svg").remove();
+    container.selectAll("svg.jsdomain-svg-single").remove();
     const realHeight = (singleOrfHeight + interOrfPadding) * region.orfs.length + 10;
     const chart = container.append("svg")
         .attr("height", realHeight)
@@ -34,75 +85,39 @@ export function drawDomains(id: string, region: IRegion, height: number): void {
         maxOrfName = Math.max(maxOrfName, orf.id.length);
     }
 
-
     const x = d3scaleLinear()
-      .domain([1, maxOrfLength])
+      .domain([1, maxOrfLength + 10])  // pad slightly to allow for a clean end
       .range([maxOrfName * 10, width]);  // allows space for labels
+
+    const singles = container.append("div").attr("class", "jsdomain-svg-singles");
 
     for (let i = 0; i < region.orfs.length; i++) {
         const orf = region.orfs[i];
         const idx = jsdomain.unique_id++;
-        const currentOrfY = (singleOrfHeight + interOrfPadding) * i + 2; // +2 to fit the first
 
-        if (i % 2 == 1) {  // alternate background colour
-            chart.append("rect")
-                .attr("x", 0)
-                .attr("y", currentOrfY - interOrfPadding / 2)
-                .attr("width", width)
-                .attr("height", singleOrfHeight + interOrfPadding)
-                .attr("fill", "#f1f1f1")
-                .attr("stroke-width", 0);
-        }
-        const text = chart.append("text")
-            .text(orf.id)
-            .attr("x", 0)
-            .attr("y", currentOrfY + height * 0.7)
-            .attr("class", "jsdomain-orflabel");
-
-        const group = chart.append("g");
-        group.append("line")
-          .attr("x1", x(0))
-          .attr("y1", currentOrfY + (height / 2))
-          .attr("x2", x(orf.sequence.length))
-          .attr("y2", currentOrfY + (height / 2))
-          .attr("class", "jsdomain-line");
-
-        group.selectAll("rect.jsdomain-domain")
-            .data(orf.domains)
-        .enter().append("rect")
-            .attr("x", (d) => x(d.start))
-            .attr("y", currentOrfY)
-            .attr("rx", 17)
-            .attr("ry", 17)
-            .attr("width", (d) => x(d.end) - x(d.start))
-            .attr("height", singleOrfHeight)
-            .attr("id", (d, j) => `details-orf-${idx}-${j}-domain`)
-            .attr("class", "jsdomain-domain ")
-            .attr("fill", (d) => getFillColor(d.type))
-            .attr("stroke", (d) => getStrokeColor(d.type))
-            .attr("stroke-width", 1);
-
-        group.selectAll("text.jsdomain-text")
-            .data(orf.domains)
-        .enter().append("text")
-            .text((d) => getLabel(d.type))
-            .attr("x", (d) => x((d.start + d.end) / 2))
-            .attr("text-anchor", "middle")
-            .attr("y", currentOrfY + height * 0.7)
-            .attr("id", (d, j) => `details-orf-${idx}-${j}-text`)
-            .attr("class", "jsdomain-text")
-            .attr("font-size", jsdomain.text_height)
-            .attr("font-weight", "bold");
+        // create a single feature SVG
+        const singleSVG = singles.append("svg")
+            .attr("height", singleOrfHeight + interOrfPadding * 0.5)  // since there's no second orf
+            .attr("width", "100%")
+            .attr("viewbox", `-1 -1 ${width} ${singleOrfHeight + interOrfPadding}`)
+            .attr("class", "jsdomain-svg-single")
+            .attr("id", `${locusToFullId(orf.id)}-domains`);
+        // add the domain
+        addOrfDomainsToSVG(singleSVG, orf, 0, idx, interOrfPadding, singleOrfHeight, width, x);
+        addOrfDomainsToSVG(chart, orf, i, idx, interOrfPadding, singleOrfHeight, width, x);
 
         const toolGroup = container.append("div").attr("id", `details-orf-${idx}`);
         toolGroup.selectAll("div.jsdomain-tooltip")
             .data(orf.domains)
-        .enter().append("div")
-            .attr("class", "jsdomain-tooltip")
-            .attr("id", (d, j) => `details-orf-${idx}-${j}-tooltip`)
-            .html((d) => generateTooltip(d, orf));
+            .enter()
+            .append("div")
+                .attr("class", "jsdomain-tooltip")
+                .attr("id", (d, j) => `details-orf-${idx}-${j}-tooltip`)
+                .html((d) => generateTooltip(d, orf));
     }
+    d3selectAll("g.domain-group").data(region.orfs);
     init();
+    redrawDomains();
 }
 
 function getStrokeColor(type: string): string {
@@ -278,12 +293,12 @@ function generateTooltip(domain: IDomain, orf: IOrf) {
 
 function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
     // hide any existing one
-    const id = $(this).attr("id");
+    const id = $(this).attr("data-id");
     if (typeof id === "undefined") {
         // we can't handle this
         return;
     }
-    const tooltip = $(`#${id.replace("-domain", "-tooltip")}`);
+    const tooltip = $(`#${id}`);
     if (activeTooltip) {
         clearTimeout(tooltip.data("timeout"));
         activeTooltip.hide();
@@ -334,4 +349,31 @@ function init() {
         $(`#${id.replace("-text", "-domain")}`).click();
     });
     $(".jsdomain-textarea").click((event) => event.stopPropagation());
+}
+
+export function redrawDomains() {
+    if ($("input.domains-selected-only").prop("checked")) {
+        $(".jsdomain-svg").hide();
+        $(".jsdomain-svg-singles").show();
+    } else {
+        $(".jsdomain-svg").show();
+        $(".jsdomain-svg-singles").hide();
+    }
+}
+
+export function createButtonHandlers() {
+    $(".nrps-pks-domain-buttons * .button-like").off("click");
+    $("input.domains-selected-only")
+        .change(function() {
+            // apply the change to all regions
+            $("input.domains-selected-only").prop("checked", $(this).prop("checked"));
+            redrawDomains();
+        });
+    $("input.domains-toggle-bg")
+        .change(function() {
+            const active = $(this).prop("checked");
+            $(".domains-even").css("fill", active ? "" : "white");
+            // and apply the change to all regions
+            $("input.domains-toggle-bg").prop("checked", active);
+        });
 }
