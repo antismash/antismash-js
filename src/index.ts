@@ -35,11 +35,11 @@ function switchToRegion() {
             $(`li.regbutton.${anchor}`).addClass("active");
         }
 
-        if (allRegions[anchor] !== undefined) {
-            drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
-        }
         if ($(`#${anchor}-details-svg`).length > 0) {
             drawDomains(`${anchor}-details-svg`, detailsData[anchor], 25);
+        }
+        if (allRegions[anchor] !== undefined) {
+            drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
         }
         $(`#${anchor} .clusterblast-selector`).change();
     }, 1);
