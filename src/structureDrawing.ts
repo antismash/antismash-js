@@ -6,7 +6,7 @@ import SmilesDrawer from "smiles-drawer";
 export function drawStructure(this: HTMLElement): void {
     const options = {
         height: 200,
-        width: 250,
+        width: ($(this).parent().width() || 270) - 20,
     };
     // SmilesDrawer can't cope with drawing while hidden, so display
     // the element if it's hidden, draw it, then hide it again
