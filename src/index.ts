@@ -50,7 +50,7 @@ function nextRegion() {
     const current = getAnchor();
     let next = "overview";
     if (current === "overview") {
-        next = "r1c1";
+        next = regions[0];
     } else {
         const currentIndex = regions.indexOf(current);
         if (currentIndex !== regions.length - 1) {
