@@ -104,7 +104,6 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
             d.isSuperCluster
                 ? `supercluster-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "supercluster-hybrid"
                 : `svgene-border-${d.tool}`))
-        .attr("transform", "translate(0,0)")
         .on("click", (d: ICluster) => {
             if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !d3event.ctrlKey) {
                 deselectOrfs();
