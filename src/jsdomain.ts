@@ -33,7 +33,20 @@ function addOrfDomainsToSVG(chart: any, orf: IOrf, position: number,
       .attr("x1", scale(0))
       .attr("x2", scale(orf.sequence.length))
       .attr("class", "jsdomain-line");
-
+    // startline
+    group.append("line")
+      .attr("x1", scale(0))
+      .attr("x2", scale(0))
+      .attr("y1", currentOrfY + singleOrfHeight / 4)
+      .attr("y2", currentOrfY + singleOrfHeight * 3 / 4)
+      .attr("class", "jsdomain-line");
+    // endline
+    group.append("line")
+      .attr("x1", scale(orf.sequence.length))
+      .attr("x2", scale(orf.sequence.length))
+      .attr("y1", currentOrfY + singleOrfHeight / 4)
+      .attr("y2", currentOrfY + singleOrfHeight * 3 / 4)
+      .attr("class", "jsdomain-line");
     // individual domains
     group.selectAll("rect.jsdomain-domain")
         .data(orf.domains)
