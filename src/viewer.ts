@@ -66,19 +66,6 @@ function ttaCodonPoints(codon: ITTACodon, height: number, offset: number, border
     return `${tipX},${tipY} ${tipX - 5},${bottom} ${tipX + 5},${bottom}`;
 }
 
-export function getStyle(needle: string, property: string): string {
-    const sheet = document.styleSheets[0] as CSSStyleSheet;
-    const haystack = sheet.rules || sheet.cssRules;
-      // for-of causes more problems so it's silenced in linting
-    for (let i = 0; i < haystack.length; i++) {  // tslint:disable-line
-        const candidate = haystack[i] as CSSStyleRule;
-        if (candidate.selectorText === needle && candidate.cssText) {
-            return (candidate.style as any).getPropertyValue(property);
-        }
-    }
-    return "";
-}
-
 function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[], ttaCodons: ITTACodon[],
                                idx: number, height: number, width: number, offset: number,
                                selectionStart: number, selectionEnd: number): void {
@@ -137,8 +124,8 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("x", (d) => scale(d.neighbouring_start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
         .attr("opacity", "0.5")
-        .style("fill", (d) => getStyle(`.${d.product}`, "background-color") || "#fff")
-        .attr("class", "cluster-background");
+        .attr("class", (d) => `cluster-background ${d.product}`)
+        .style("stroke-width", "0");
     // extent lines
     clusterBars.append("line")
         .attr("x1", (d) => scale(d.neighbouring_start))
@@ -152,8 +139,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("height", barSize)
         .attr("x", (d) => scale(d.start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
-        .attr("class", "cluster-core")
-        .style("fill", (d) => getStyle(`.${d.product}`, "background-color") || "")
+        .attr("class", (d) => `cluster-core ${d.product}`)
         .style("stroke", "black");
     // cluster name
     clusterBars.append("text")
