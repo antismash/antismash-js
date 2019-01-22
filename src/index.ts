@@ -112,6 +112,17 @@ function map_type_to_desc(type: string): string {
     }
 }
 
+function addHelpTooltipHandlers() {
+    $(".help-icon").off("click").click(function(this: HTMLElement) {
+        $(this).toggleClass("active");
+        $(this).next().toggle();
+    });
+    $(".help-tooltip").off("click").click(function(this: HTMLElement) {
+        $(this).hide();
+        $(this).prev().removeClass("active");
+    });
+}
+
 export function start(regions: any, details: any) {
     createRecordOverviews(regions);
     allRegions = regions;
@@ -171,6 +182,7 @@ export function start(regions: any, details: any) {
     createButtonHandlers();
     drawStructures();
     setupDetails(regions.order);
+    addHelpTooltipHandlers();
 
     $(".collapser").click(toggleCollapserHandler);
 }
