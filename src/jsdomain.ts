@@ -99,7 +99,7 @@ export function drawDomains(id: string, region: IRegion, height: number): void {
     }
 
     const x = d3scaleLinear()
-      .domain([1, maxOrfLength + 10])  // pad slightly to allow for a clean end
+      .domain([1, maxOrfLength * 1.02])  // pad slightly to allow for a clean end
       .range([maxOrfName * 10, width]);  // allows space for labels
 
     const singles = container.append("div").attr("class", "jsdomain-svg-singles");
