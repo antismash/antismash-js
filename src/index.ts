@@ -28,11 +28,11 @@ export function getAnchor(): string {
 function switchToRegion() {
     setTimeout(() => {
         $(".page").hide();
-        $("li.regbutton").removeClass("active");
+        $(".regbutton").removeClass("active");
         const anchor = getAnchor();
         $(`#${anchor}`).show();
         if (anchor !== "overview") {
-            $(`li.regbutton.${anchor}`).addClass("active");
+            $(`.regbutton.${anchor}`).addClass("active");
         }
 
         if ($(`#${anchor}-details-svg`).length > 0) {
