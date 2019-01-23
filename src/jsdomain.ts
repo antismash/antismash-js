@@ -25,7 +25,13 @@ function addOrfDomainsToSVG(chart: any, orf: IOrf, position: number,
         .text(orf.id)
         .attr("x", 0)
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
-        .attr("class", "jsdomain-orflabel");
+        .attr("class", "jsdomain-orflabel")
+        .attr("data-locus", orf.id);
+    // label as selector as per viewer
+    $(".jsdomain-orflabel").off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
+        $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
+    });
+
     // centerline
     group.append("line")
       .attr("y1", currentOrfY + (singleOrfHeight / 2))
