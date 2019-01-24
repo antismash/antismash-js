@@ -5,7 +5,7 @@ import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
-import {IDomain, IOrf, IRegion} from "./dataStructures.js";
+import {IDomain, IDomainsOrf, IDomainsRegion} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
 
 let activeTooltip: JQuery<HTMLElement> | null;
@@ -16,7 +16,7 @@ const jsdomain = {
     version: "0.0.1",
 };
 
-function addOrfDomainsToSVG(chart: any, orf: IOrf, position: number,
+function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
     const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 2; // +2 to fit the first
@@ -58,33 +58,33 @@ function addOrfDomainsToSVG(chart: any, orf: IOrf, position: number,
     group.selectAll("rect.jsdomain-domain")
         .data(orf.domains)
     .enter().append("rect")
-        .attr("x", (d: IOrf) => scale(d.start))
+        .attr("x", (d: IDomain) => scale(d.start))
         .attr("y", currentOrfY)
         .attr("rx", 17)
         .attr("ry", 17)
-        .attr("width", (d: IOrf) => scale(d.end) - scale(d.start))
+        .attr("width", (d: IDomain) => scale(d.end) - scale(d.start))
         .attr("height", singleOrfHeight)
-        .attr("data-id", (d: IOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
+        .attr("data-id", (d: IDomain, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
         .attr("class", "jsdomain-domain")
-        .attr("fill", (d: IOrf) => getFillColor(d.type))
-        .attr("stroke", (d: IOrf) => getStrokeColor(d.type))
+        .attr("fill", (d: IDomain) => getFillColor(d.type))
+        .attr("stroke", (d: IDomain) => getStrokeColor(d.type))
         .attr("stroke-width", 1);
 
     // individual domain text
     group.selectAll("text.jsdomain-text")
         .data(orf.domains)
     .enter().append("text")
-        .text((d: IOrf) => getLabel(d.type))
-        .attr("x", (d: IOrf) => scale((d.start + d.end) / 2))
+        .text((d: IDomain) => getLabel(d.type))
+        .attr("x", (d: IDomain) => scale((d.start + d.end) / 2))
         .attr("text-anchor", "middle")
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
-        .attr("data-id", (d: IOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
+        .attr("data-id", (d: IDomainsOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
         .attr("class", "jsdomain-text")
         .attr("font-size", jsdomain.text_height)
         .attr("font-weight", "bold");
 }
 
-export function drawDomains(id: string, region: IRegion, height: number): void {
+export function drawDomains(id: string, region: IDomainsRegion, height: number): void {
     const container = d3select(`#${id}`);
     const singleOrfHeight = height;
     const interOrfPadding = 10;
@@ -290,7 +290,7 @@ function getLabel(type: string): string {
     }
 }
 
-function generateTooltip(domain: IDomain, orf: IOrf) {
+function generateTooltip(domain: IDomain, orf: IDomainsOrf) {
     let html = `${domain.type}<br>Location: ${domain.start}-${domain.end} AA<br>`;
     if (domain.napdoslink.length > 0) {
         html += `<a href="${domain.napdoslink}" target="_blank">Analyze with NaPDoS</a><br>`;

@@ -535,9 +535,9 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
                 .classed(SELECTED_ORF_CLASS, selected);
             // update domains related to this orf
             if (selected) {  // not a toggle due to default state sync
-                $(`#${data.locus_tag}-domains`).show();
+                $(`#${locusToFullId(data.locus_tag)}-domains`).show();
             } else {
-                $(`#${data.locus_tag}-domains`).hide();
+                $(`#${locusToFullId(data.locus_tag)}-domains`).hide();
             }
         });
 }

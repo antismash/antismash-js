@@ -12,17 +12,20 @@ export interface IDomain {  // maps to antismash.common.json.JSONDomain
     readonly dna_sequence: string;
 }
 
-export interface IOrf {  // maps to antismash.common.json.JSONOrf
-    readonly id: string;
+export interface IOrf {
     readonly start: number;
     readonly end: number;
     readonly strand: number;
     readonly type: string;
     readonly description: string;
     readonly locus_tag: string;
-    readonly sequence: string;
-    readonly domains: IDomain[];
     readonly color?: string;
+}
+
+export interface IDomainsOrf {
+    readonly sequence: string;
+    readonly id: string;
+    readonly domains: IDomain[];
 }
 
 export interface ICluster {
@@ -53,4 +56,9 @@ export interface IRegion {
     readonly orfs: IOrf[];
     readonly label: string;
     readonly products: string[];
+}
+
+export interface IDomainsRegion {
+    readonly id: string;
+    readonly orfs: IDomainsOrf[];
 }

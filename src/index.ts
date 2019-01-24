@@ -35,11 +35,12 @@ function switchToRegion() {
             $(`.regbutton.${anchor}`).addClass("active");
         }
 
-        if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(`${anchor}-details-svg`, detailsData[anchor], 25);
-        }
         if (allRegions[anchor] !== undefined) {
             drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
+        }
+        // draw details domains after the region so locus to id conversion works correctly
+        if ($(`#${anchor}-details-svg`).length > 0) {
+            drawDomains(`${anchor}-details-svg`, detailsData[anchor], 25);
         }
         $(`#${anchor} .clusterblast-selector`).change();
     }, 1);
