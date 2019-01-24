@@ -29,3 +29,7 @@ export function copyToClipboard(this: HTMLElement): void {
         document.body.removeChild(textArea);
     }
 }
+
+export function clipboardCopyConstruct(data: string): string {
+    return `<span class="clipboard-copy" data-seq="${data}">Copy to clipboard</span>`;
+}
