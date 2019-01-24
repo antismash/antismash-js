@@ -4,6 +4,7 @@
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 
+import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
 import {IDomain, IOrf, IRegion} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
 
@@ -133,6 +134,7 @@ export function drawDomains(id: string, region: IRegion, height: number): void {
                 .attr("class", "jsdomain-tooltip")
                 .attr("id", (d, j) => `details-orf-${idx}-${j}-tooltip`)
                 .html((d) => generateTooltip(d, orf));
+        $(".jsdomain-tooltip .clipboard-copy").off("click").click(copyToClipboard);
     }
     d3selectAll("g.domain-group").data(region.orfs);
     init();
@@ -301,10 +303,9 @@ function generateTooltip(domain: IDomain, orf: IOrf) {
         }
         html += "</dl>";
     }
-    html += `AA sequence: <a href="javascript:copyToClipboard(${domain.sequence}')">Copy to clipboard</a><br>`;
+    html += `AA sequence: ${clipboardCopyConstruct(domain.sequence)}<br>`;
     if (domain.dna_sequence) {
-        html += 'Nucleotide sequence: <a href="javascript:copyToClipboard';
-        html += `('${domain.dna_sequence}')">Copy to clipboard</a><br>`;
+        html += `Nucleotide sequence: ${clipboardCopyConstruct(domain.dna_sequence)}<br>`;
     }
 
     return html;
