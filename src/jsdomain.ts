@@ -193,13 +193,14 @@ function getStrokeColor(type: string): string {
 function getFillColor(type: string): string {
     switch (type) {
         case "AMP-binding":
-        case "AOX":
+        case "A-OX":
             return "rgb(188,127,245)";
         case "PCP":
         case "ACP":
+        case "ACP_beta":
+        case "ACPS":
             return "rgb(129,190,247)";
         case "Cglyc":
-        case "CXglyc":
         case "Condensation_DCL":
         case "Condensation_LCL":
         case "Condensation_Starter":
@@ -229,11 +230,6 @@ function getFillColor(type: string): string {
             return "rgb(247,190,129)";
         case "PKS_ER":
             return "rgb(129,247,243)";
-        case "Aminotran_1_2":
-        case "Aminotran_3":
-        case "Aminotran_4":
-        case "Aminotran_5":
-        case "Polyketide_cyc2":
         default:
             return "rgb(218,218,218)";
     }
@@ -242,10 +238,12 @@ function getFillColor(type: string): string {
 function getLabel(type: string): string {
     switch (type) {
         case "AMP-binding":
-        case "AOX":
+        case "A-OX":
             return "A";
         case "PCP":
         case "ACP":
+        case "ACP_beta":
+        case "ACPS":
         case "NRPS-COM_Nterm":
         case "NRPS-COM_Cterm":
         case "PKS_Docking_Nterm":
@@ -261,7 +259,6 @@ function getLabel(type: string): string {
         case "TIGR02353":
             return "";
         case "Cglyc":
-        case "CXglyc":
         case "Condensation_DCL":
         case "Condensation_LCL":
         case "Condensation_Starter":
