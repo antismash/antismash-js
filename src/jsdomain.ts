@@ -144,7 +144,7 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
 function getStrokeColor(type: string): string {
     switch (type) {
         case "AMP-binding":
-        case "AOX":
+        case "A-OX":
             return "rgb(87,22,128)";
         case "PCP":
         case "ACP":
