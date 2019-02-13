@@ -143,9 +143,9 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
     // cluster name
     clusterBars.append("text")
         .attr("x", (d) => scale((d.start + d.end) / 2))
-        .attr("y", (d) => (d.isSuperCluster ? ((d.height + 1) * (barSize + verticalBarGap) + (barSize / 2) + offset)
-                                            : ((d.height) * (barSize + verticalBarGap) + (barSize / 2) + offset)))
-        .attr("dy", "-1em")
+        .attr("y", (d) => (d.tool === "rule-based-clusters"
+                                            ? ((d.height - 1) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)
+                                            : ((d.height) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)))
         .style("font-size", "xx-small")
         .attr("class", "clusterlabel")
         .attr("text-anchor", "middle")
