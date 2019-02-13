@@ -238,8 +238,9 @@ function getFillColor(type: string): string {
 function getLabel(type: string): string {
     switch (type) {
         case "AMP-binding":
-        case "A-OX":
             return "A";
+        case "A-OX":
+            return "A-OX";
         case "PCP":
         case "ACP":
         case "ACP_beta":
