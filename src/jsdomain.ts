@@ -28,11 +28,6 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
         .attr("class", "jsdomain-orflabel")
         .attr("data-locus", orf.id);
-    // label as selector as per viewer
-    $(".jsdomain-orflabel").off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
-        $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
-    });
-
     // centerline
     group.append("line")
       .attr("y1", currentOrfY + (singleOrfHeight / 2))
@@ -136,6 +131,10 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
                 .html((d) => generateTooltip(d, orf));
         $(".jsdomain-tooltip .clipboard-copy").off("click").click(copyToClipboard);
     }
+    // label as selector as per viewer
+    $(".jsdomain-orflabel").off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
+        $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
+    });
     d3selectAll("g.domain-group").data(region.orfs);
     init();
     redrawDomains();
