@@ -94,15 +94,27 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
         .attr("class", "jsdomain-svg");
 
     let maxOrfLength = 0;
-    let maxOrfName = 0;
+    let longestName = "";
     for (const orf of region.orfs) {
         maxOrfLength = Math.max(maxOrfLength, orf.sequence.length);
-        maxOrfName = Math.max(maxOrfName, orf.id.length);
+        if (longestName.length < orf.id.length) {
+            longestName = orf.id;
+        }
     }
+
+    // find the exact length of the longest ORF name
+    const dummyLabel = chart.append("g").append("text")
+        .text(longestName)
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("id", "dummy-label");
+
+    const maxNameWidth = (dummyLabel.node() as SVGTextElement).getComputedTextLength() || (longestName.length * 15);
+    dummyLabel.remove();
 
     const x = d3scaleLinear()
       .domain([1, maxOrfLength * 1.02])  // pad slightly to allow for a clean end
-      .range([maxOrfName * 15, width]);  // allows space for labels
+      .range([maxNameWidth + 10, width]);  // allows space for labels
 
     const singles = container.append("div").attr("class", "jsdomain-svg-singles");
 
