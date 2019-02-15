@@ -4,9 +4,9 @@
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {event as d3event, select as d3select} from "d3-selection";
 
-import {IRegion} from "./dataStructures.js";
+import {IRecord, IRegion} from "./dataStructures.js";
 
-function createRecordOverview(record: number, regions: IRegion[]): void {
+function createRecordOverview(record: number, regions: IRegion[], recordLength: number): void {
     if (regions.length === 0) {
         return;
     }
@@ -19,7 +19,7 @@ function createRecordOverview(record: number, regions: IRegion[]): void {
         .attr("height", height);
 
     const recordScale = d3scaleLinear()
-        .domain([0, regions[regions.length - 1].end])
+        .domain([0, recordLength])
         .range([0, width - 10]);
 
     container.append("line")
@@ -78,20 +78,13 @@ function createRecordOverview(record: number, regions: IRegion[]): void {
 
 }
 
-export function createRecordOverviews(allRegions: any): void {
-    // step 1, gather regions by record
-    const byRecord: IRegion[][] = [];
-    for (const regionName of allRegions.order) {
-        const regionNumber = parseInt(regionName.split("c")[0].substring(1), 10);  // "r2c5" -> 2
-        while (byRecord.length <= regionNumber) {
-            byRecord.push([]);
+export function createRecordOverviews(records: IRecord[]): void {
+    let i = 1; // records are 1-indexed in user facing world
+    for (const record of records) {
+        if (record.regions.length === 0) {  // skip empty records
+            continue;
         }
-        byRecord[regionNumber].push(allRegions[regionName]);
-    }
-    // step 2, build each svg
-    for (let i = 0; i < byRecord.length; i++) {
-        if (byRecord[i].length > 0) {
-            createRecordOverview(i, byRecord[i]);
-        }
+        createRecordOverview(i, record.regions, record.length);
+        i += 1;
     }
 }

@@ -62,3 +62,9 @@ export interface IDomainsRegion {
     readonly id: string;
     readonly orfs: IDomainsOrf[];
 }
+
+export interface IRecord {
+    readonly length: number;
+    readonly seq_id: string;
+    readonly regions: IRegion[];
+}

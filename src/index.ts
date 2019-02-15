@@ -3,6 +3,7 @@
 
 import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
+import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
 import {createButtonHandlers, drawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
@@ -124,8 +125,8 @@ function addHelpTooltipHandlers() {
     });
 }
 
-export function start(regions: any, details: any) {
-    createRecordOverviews(regions);
+export function start(regions: any, details: any, records: IRecord[]) {
+    createRecordOverviews(records);
     allRegions = regions;
     detailsData = details;
     document.addEventListener("keyup", keyUpEvent, false);
