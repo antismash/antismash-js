@@ -101,19 +101,19 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
     const clusterBars: d3.Selection<SVGGElement, ICluster, any, any> = chart.selectAll("g.cluster-bar-group")
         .data(borders)
         .enter().append("g").attr("class", (d: ICluster) => (
-            d.isSuperCluster
-                ? `supercluster-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "supercluster-hybrid"
+            d.isCandidateCluster
+                ? `candidate-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "candidate-hybrid"
                 : `svgene-border-${d.tool}`))
         .on("click", (d: ICluster) => {
             if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !d3event.ctrlKey) {
                 deselectOrfs();
             }
             select_by_range(d.neighbouring_start, d.neighbouring_end);
-            toggleSuperclusterCollapsers(d);
+            toggleCandidateClusterCollapsers(d);
         })
         .on("dblclick", (d: ICluster) => {
             select_by_range(d.neighbouring_start, d.neighbouring_end);
-            toggleSuperclusterCollapsers(d);
+            toggleCandidateClusterCollapsers(d);
             change_view(d.neighbouring_start, d.neighbouring_end);
         });
     // background
@@ -493,12 +493,12 @@ function createHandlers(): void {
     }
 }
 
-function toggleSuperclusterCollapsers(cluster: ICluster): void {
-    // hide any open supercluster expanders
-    toggleCollapser($(".collapser-level-supercluster.expanded"));
+function toggleCandidateClusterCollapsers(cluster: ICluster): void {
+    // hide any open candidate cluster expanders
+    toggleCollapser($(".collapser-level-candidate.expanded"));
     // then expand relevant expanders
     const target = cluster.product.split(":")[0].split(" ")[1];
-    toggleCollapser($(`.collapser-level-supercluster.collapser-target-SC${target}`));
+    toggleCollapser($(`.collapser-level-candidate.collapser-target-CC${target}`));
 }
 
 function toggleCDSCollapserMatchingElement(geneElement: JQuery<HTMLElement>, level: string): void {
@@ -518,8 +518,8 @@ function select_by_range(start: number, end: number): void {
         const data: IOrf = node.datum();
         if (start <= data.start && data.end <= end) {
             selectOrfs($(this));
-            toggleCDSCollapserMatchingElement($(this), "supercluster");
-            toggleCDSCollapserMatchingElement($(this), "cluster");
+            toggleCDSCollapserMatchingElement($(this), "candidate");
+            toggleCDSCollapserMatchingElement($(this), "protocluster");
         }
     });
 }

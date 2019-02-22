@@ -36,7 +36,7 @@ export interface ICluster {
     readonly product: string;
     readonly height: number;
     readonly tool: string;
-    readonly isSuperCluster: boolean;
+    readonly isCandidateCluster: boolean;
 }
 
 export interface ITTACodon {
