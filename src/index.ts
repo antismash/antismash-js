@@ -79,6 +79,19 @@ function previous_region() {
     switchToRegion();
 }
 
+function createOverviewHandlers() {
+    $("input.overview-switch-compact")
+        .change(function() {
+            if ($(this).prop("checked")) {
+                $("#single-record-tables").hide();
+                $("#compact-record-table").show();
+            } else {
+                $("#single-record-tables").show();
+                $("#compact-record-table").hide();
+            }
+        }).trigger("change");  // ensure current state is respected on soft refresh
+}
+
 function keyUpEvent(event: KeyboardEvent) {
     const key = event.keyCode;
     if (key === 37) {  // left arrow
@@ -179,8 +192,8 @@ export function start(regions: any, details: any, records: IRecord[]) {
     });
 
     $(".cluster-rules-header").click(toggle_cluster_rules);
-
     switchToRegion();
+    createOverviewHandlers();
     createButtonHandlers();
     drawStructures();
     setupDetails(regions.order);
