@@ -90,6 +90,13 @@ function createOverviewHandlers() {
                 $("#compact-record-table").hide();
             }
         }).trigger("change");  // ensure current state is respected on soft refresh
+    $(".linked-row").off("click").click(function() {
+        const anchor = $(this).attr("data-anchor");
+        if (anchor) {
+            window.location.href = anchor;
+            switchToRegion();
+        }
+    });
 }
 
 function keyUpEvent(event: KeyboardEvent) {
