@@ -347,16 +347,9 @@ function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
             top: 0,
         };
     }
-    tooltip.css("left", offset.left + 10);
-    const thisParent = $(this).parent();
-    const numChildren = Math.min(thisParent.children("line").length, 1);
-    let height = thisParent.height();
-    if (typeof height === "undefined") {
-        height = 0;
-    }
-    const topOffset = height / (numChildren * 2);
     let timeout = setTimeout(() => tooltip.slideUp("fast"), 5000);
     tooltip.css("top", offset.top + 30)
+        .css("left", offset.left + 10)
         .show()
         .click(function() {$(this).hide(); })
         .data("timeout", timeout)
