@@ -56,32 +56,32 @@ function tooltipHandler(this: JQuery<HTMLElement>, ev: JQuery.Event): void {
     const tooltip = $(`#${$(this).attr("id")}-tooltip`);
 
     if (activeTooltip) {
+        clearTimeout(tooltip.data("timeout"));
         activeTooltip.hide();
     }
     activeTooltip = tooltip;
 
-    if (tooltip.css("display") === "none") {
-        let offset = $(this).offset();
-        if (typeof offset === "undefined") {
-            offset = {
-                left: 0,
-                top: 0,
-            };
-        }
-        tooltip.css("top", offset.top + 10);
-        tooltip.css("left", offset.left + 5);
-
-        tooltip.show();
-        tooltip.click(function() {$(this).hide(); });
-        let timeout = setTimeout(() => tooltip.slideUp("fast"), 5000);
-        tooltip.data("timeout", timeout);
-        tooltip.mouseover(() => {
+    if (tooltip.css("display") !== "none") {
+        tooltip.hide();
+        return;
+    }
+    let offset = $(this).offset();
+    if (typeof offset === "undefined") {
+        offset = {
+            left: 0,
+            top: 0,
+        };
+    }
+    let timeout = setTimeout(() => tooltip.slideUp("fast"), 5000);
+    tooltip.css("top", offset.top + 10)
+        .css("left", offset.left + 5)
+        .show()
+        .click(function() {$(this).hide(); })
+        .data("timeout", timeout)
+        .mouseover(() => clearTimeout(tooltip.data("timeout")))
+        .mouseout(() => {
             clearTimeout(tooltip.data("timeout"));
-        }).mouseout(() => {
             timeout = setTimeout(() => tooltip.slideUp("fast"), 5000);
             tooltip.data("timeout", timeout);
         });
-    } else {
-        tooltip.hide();
-    }
 }
