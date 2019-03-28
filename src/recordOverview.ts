@@ -79,12 +79,12 @@ function createRecordOverview(record: number, regions: IRegion[], recordLength: 
 }
 
 export function createRecordOverviews(records: IRecord[]): void {
-    let i = 1; // records are 1-indexed in user facing world
+    let i = 0; // records are 1-indexed in user facing world
     for (const record of records) {
+        i += 1;
         if (record.regions.length === 0) {  // skip empty records
             continue;
         }
         createRecordOverview(i, record.regions, record.length);
-        i += 1;
     }
 }
