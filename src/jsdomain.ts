@@ -1,11 +1,13 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
+import {Path, path} from "d3-path";
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {select as d3select, selectAll as d3selectAll} from "d3-selection";
+import {arc as d3arc} from "d3-shape";
 
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
-import {IDomain, IDomainsOrf, IDomainsRegion} from "./dataStructures.js";
+import {IDomain, IDomainsOrf, IDomainsRegion, IModule} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
 
 let activeTooltip: JQuery<HTMLElement> | null;
@@ -19,7 +21,7 @@ const jsdomain = {
 function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
-    const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 2; // +2 to fit the first
+    const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 4; // +4 to fit the first
     const group = chart.append("g").attr("class", "domain-group");
     // label
     group.append("text")
@@ -28,6 +30,17 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
         .attr("class", "jsdomain-orflabel")
         .attr("data-locus", orf.id);
+    // module bases
+    group.selectAll("rect.jsdomain-module")
+        .data(orf.modules)
+    .enter().append("rect")
+        .attr("x", (d: IModule) => scale(d.start))
+        .attr("y", currentOrfY - 3)
+        .attr("width", (d: IModule) => scale(d.end) - scale(d.start))
+        .attr("height", singleOrfHeight + 6)
+        .attr("rx", 5)
+        .attr("class", (d: IModule) => d.complete ? "jsdomain-module" : "jsdomain-module jsdomain-incomplete-module");
+
     // centerline
     group.append("line")
       .attr("y1", currentOrfY + (singleOrfHeight / 2))
@@ -75,6 +88,45 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("class", "jsdomain-text")
         .attr("font-size", jsdomain.text_height)
         .attr("font-weight", "bold");
+
+    // module lids
+    const moduleLids = group.selectAll("g.jsdomain-module-lid")
+        .data(orf.modules.filter((d) => d.complete))
+    .enter().append("g")
+        .attr("class", "jsdomain-module-lid");
+    moduleLids.append("rect")
+        .attr("x", (module: IModule) => scale(module.start))
+        .attr("y", currentOrfY - 3)
+        .attr("width", (module: IModule) => scale(module.end) - scale(module.start))
+        .attr("height", singleOrfHeight + 6)
+        .attr("rx", 5)
+        .attr("class", "jsdomain-module-lid-body");
+    moduleLids.append("text")
+        .text((module: IModule) => module.monomer || "no prediction")
+        .attr("x", (module: IModule) => scale((module.start + module.end) / 2))
+        .attr("y", (module: IModule) => currentOrfY + singleOrfHeight * (module.iterative ? 0.5 : 0.7))
+        .attr("text-anchor", "middle")
+        .attr("class", "jsdomain-module-lid-text");
+
+    const iterIcon: Path = path();  // this doesn't return itself for methods, so chaining won't work
+    iterIcon.moveTo(50, 50);
+    iterIcon.arc(0, 50, 50, 0, 45 * (Math.PI / 180), true);
+    iterIcon.moveTo(50, 50);
+    iterIcon.lineTo(10, 40);
+
+    const detail = iterIcon.toString();
+
+    moduleLids.append("path")
+        .attr("d", detail)
+        .attr("stroke", (module: IModule) => module.iterative ? "black" : "none")
+        .attr("stroke-width", "5px")
+        .attr("fill", "none")
+        .attr("stroke-linecap", "round")
+        .attr("transform", (module: IModule) => {
+            const start: number = scale((module.start + module.end) / 2);
+            const end: number = currentOrfY + singleOrfHeight * 0.6;
+            return `translate(${start}, ${end}) scale(0.1, 0.1)`;
+        });
 }
 
 export function drawDomains(id: string, region: IDomainsRegion, height: number): void {
@@ -84,7 +136,7 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
     const width = $(`#${id}`).width() || 700;
     container.selectAll("svg.jsdomain-svg").remove();
     container.selectAll("svg.jsdomain-svg-single").remove();
-    const realHeight = (singleOrfHeight + interOrfPadding) * region.orfs.length + 10;
+    const realHeight = (singleOrfHeight + interOrfPadding) * region.orfs.length;
     const chart = container.append("svg")
         .attr("height", realHeight)
         .attr("width", "100%")
@@ -116,15 +168,16 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
 
     const singles = container.append("div").attr("class", "jsdomain-svg-singles");
 
+    const singleSVGHeight = singleOrfHeight + interOrfPadding * 0.8;
     for (let i = 0; i < region.orfs.length; i++) {
         const orf = region.orfs[i];
         const idx = jsdomain.unique_id++;
 
         // create a single feature SVG
         const singleSVG = singles.append("svg")
-            .attr("height", singleOrfHeight + interOrfPadding * 0.5)  // since there's no second orf
+            .attr("height", singleSVGHeight)  // since there's no second orf
             .attr("width", "100%")
-            .attr("viewbox", `-1 -1 ${width} ${singleOrfHeight + interOrfPadding}`)
+            .attr("viewbox", `-1 -1 ${width} ${singleSVGHeight}`)
             .attr("class", "jsdomain-svg-single")
             .attr("id", `${locusToFullId(orf.id)}-domains`);
         // add the domain
@@ -222,6 +275,11 @@ function init() {
         $(`#${id.replace("-text", "-domain")}`).click();
     });
     $(".jsdomain-textarea").click((event) => event.stopPropagation());
+    $(".jsdomain-module-lid").mouseenter(function() {
+        $(this).hide();
+    }).mouseleave(function() {
+        $(this).show();
+    });
 }
 
 export function redrawDomains() {
@@ -232,6 +290,11 @@ export function redrawDomains() {
         $(".jsdomain-svg").show();
         $(".jsdomain-svg-singles").hide();
     }
+    if ($("input.show-module-domains").prop("checked")) {
+        $(".jsdomain-module-lid").hide();
+    } else {
+        $(".jsdomain-module-lid").show();
+    }
 }
 
 export function createButtonHandlers() {
@@ -240,6 +303,12 @@ export function createButtonHandlers() {
         .change(function() {
             // apply the change to all regions
             $("input.domains-selected-only").prop("checked", $(this).prop("checked"));
+            redrawDomains();
+        });
+    $("input.show-module-domains")
+        .change(function() {
+            // apply the change to all regions
+            $("input.show-module-domains").prop("checked", $(this).prop("checked"));
             redrawDomains();
         });
     $("input.domains-toggle-bg")

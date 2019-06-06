@@ -29,6 +29,8 @@ export interface IModule {
     readonly start: number;
     readonly end: number;
     readonly complete: boolean;
+    readonly monomer: string;
+    readonly iterative: boolean;
 }
 
 export interface IDomainsOrf {
