@@ -25,10 +25,17 @@ export interface IOrf {
     readonly color?: string;
 }
 
+export interface IModule {
+    readonly start: number;
+    readonly end: number;
+    readonly complete: boolean;
+}
+
 export interface IDomainsOrf {
     readonly sequence: string;
     readonly id: string;
     readonly domains: IDomain[];
+    readonly modules: IModule[];
 }
 
 export interface ICluster {
