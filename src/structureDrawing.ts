@@ -6,6 +6,7 @@ import SmilesDrawer from "smiles-drawer";
 export function drawStructure(this: HTMLElement): void {
     const canvas: HTMLCanvasElement = this as HTMLCanvasElement;
     const options = {
+        experimentalSSSR: true,
         height: 200,
         padding: 30,
         width: ($(canvas).parent().width() || 270) - 20,
@@ -33,6 +34,7 @@ export function drawStructure(this: HTMLElement): void {
             return;
         }
         const modalOptions = {
+            experimentalSSSR: true,
             height: (target.height() || 500),
             padding: 30,
             width: ((target.width() || 700) + 80),  // unintuitive, but forces fitting into element
