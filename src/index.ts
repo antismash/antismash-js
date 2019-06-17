@@ -1,6 +1,7 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
+import {copyToClipboard} from "./clipboard.js";
 import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {IRecord} from "./dataStructures.js";
@@ -205,6 +206,6 @@ export function start(regions: any, details: any, records: IRecord[]) {
     drawStructures();
     setupDetails(regions.order);
     addHelpTooltipHandlers();
-
+    $(".clipboard-copy").off("click").click(copyToClipboard);
     $(".collapser").click(toggleCollapserHandler);
 }
