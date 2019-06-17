@@ -34,6 +34,7 @@ export function drawStructure(this: HTMLElement): void {
             return;
         }
         const modalOptions = {
+            experimentalSSSR: true,
             height: (target.height() || 500),
             padding: 30,
             width: ((target.width() || 700) + 80),  // unintuitive, but forces fitting into element
