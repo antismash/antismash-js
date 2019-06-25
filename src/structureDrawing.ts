@@ -4,23 +4,27 @@
 import SmilesDrawer from "smiles-drawer";
 
 export function drawStructure(this: HTMLElement): void {
+    const canvas: HTMLCanvasElement = this as HTMLCanvasElement;
     const options = {
         height: 200,
         padding: 30,
-        width: ($(this).parent().width() || 270) - 20,
+        width: ($(canvas).parent().width() || 270) - 20,
     };
     // SmilesDrawer can't cope with drawing while hidden, so display
-    // the element if it's hidden, draw it, then hide it again
-    const expanded: boolean = $(this).parent().parent().hasClass("expanded");
-    if (!expanded) {
-        $(this).parent().css("display", "block");
+    // the element if it's hidden, draw it, then hide it again.
+    // Since the depth isn't known, move it to the body,
+    // then back to the beginning of the parent element
+    const parent: JQuery<HTMLElement> = $(canvas).parent();
+    const visible: boolean = $(canvas).is(":visible");
+    if (!visible) {
+        parent.detach(canvas.id);
+        $("body").append(canvas);
     }
     const smilesDrawer = new SmilesDrawer.Drawer(options);
-    const canvas: HTMLCanvasElement = this as HTMLCanvasElement;
     SmilesDrawer.parse(canvas.getAttribute("data-smiles"),
                        (tree: string) => smilesDrawer.draw(tree, canvas, "light", false));
-    if (!expanded) {
-        $(this).parent().removeAttr("style");
+    if (!visible) {
+        parent.prepend(canvas);
     }
     $(this).click(function(this: HTMLElement, event: JQuery.Event) {
         $(`#${$(this).attr("id")}-modal`).show();
