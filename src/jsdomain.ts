@@ -275,10 +275,23 @@ function init() {
         $(`#${id.replace("-text", "-domain")}`).click();
     });
     $(".jsdomain-textarea").click((event) => event.stopPropagation());
+    let prev: JQuery<HTMLElement> | null;
     $(".jsdomain-module-lid").mouseenter(function() {
-        $(this).hide();
+        if (prev) {
+            clearTimeout(prev.data("timeout"));
+            if (!$(this).is(prev)) {
+                prev.attr("style", "");
+                $(this).css("opacity", "0");
+            }
+        } else {
+            $(this).css("opacity", "0");
+        }
     }).mouseleave(function() {
-        $(this).show();
+        prev = $(this);
+        prev.data("timeout", setTimeout(() => {
+            $(this).attr("style", "");
+            prev = null;
+        }, 100));
     });
 }
 
