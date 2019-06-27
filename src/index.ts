@@ -64,7 +64,7 @@ function nextRegion() {
     switchToRegion();
 }
 
-function previous_region() {
+function previousRegion() {
     const regions = allRegions.order;
     const current = getAnchor();
     let prev = "";
@@ -78,6 +78,32 @@ function previous_region() {
     }
     window.location.href = `#${prev}`;
     switchToRegion();
+}
+
+function changeElementInRegion(className: string, direction: number) {
+    const activeClassName = className + "-active";
+    const currentRegion = getAnchor();
+    const tabs = $(`#${currentRegion}`).find(`.${className}`);
+    const currentTab = $(`#${currentRegion}`).find(`.${activeClassName}`);
+    if (!tabs || !currentTab) { // no tabs for current region
+        return;
+    }
+    if (!currentTab) { // no tabs for current region
+        return;
+    }
+    if (direction > 0) {
+        if (currentTab.is(tabs.last())) {
+            tabs.first().trigger("click");
+        } else {
+            currentTab.next().trigger("click");
+        }
+    } else {
+        if (currentTab.is(tabs.first())) {
+            tabs.last().trigger("click");
+        } else {
+            currentTab.prev().trigger("click");
+        }
+    }
 }
 
 function createOverviewHandlers() {
@@ -102,10 +128,23 @@ function createOverviewHandlers() {
 
 function keyUpEvent(event: KeyboardEvent) {
     const key = event.keyCode;
-    if (key === 37) {  // left arrow
-        previous_region();
-    } else if (key === 39) {  // right arrow
+    if (key === 37 || key === 87) {  // left arrow or w
+        previousRegion();
+    } else if (key === 39 || key === 69) {  // right arrow or e
         nextRegion();
+    }
+    // ignore tab-related keystrokes if no tabs available
+    if (getAnchor() === "overview") {
+        return;
+    }
+    if (key === 65) {  // a
+        changeElementInRegion("body-details-header", -1);
+    } else if (key === 83) {  // s
+        changeElementInRegion("body-details-header", 1);
+    } else if (key === 68) {  // d
+        changeElementInRegion("sidepanel-details-header", -1);
+    } else if (key === 70) {  // f
+        changeElementInRegion("sidepanel-details-header", 1);
     }
 }
 
@@ -154,7 +193,7 @@ export function start(regions: any, details: any, records: IRecord[]) {
     $("#download").click(toggle_downloadmenu);
 
     $("#next-region").click(nextRegion);
-    $("#prev-region").click(previous_region);
+    $("#prev-region").click(previousRegion);
 
     $(".regbutton").click(function() {
         /* Make sure that even if user missed the link and clicked the
