@@ -10,6 +10,8 @@ export interface IDomain {  // maps to antismash.common.json.JSONDomain
     readonly blastlink: string;
     readonly sequence: string;
     readonly dna_sequence: string;
+    readonly abbreviation: string;
+    readonly html_class: string;
 }
 
 export interface IOrf {

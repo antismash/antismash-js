@@ -60,16 +60,14 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("width", (d: IDomain) => scale(d.end) - scale(d.start))
         .attr("height", singleOrfHeight)
         .attr("data-id", (d: IDomain, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
-        .attr("class", "jsdomain-domain")
-        .attr("fill", (d: IDomain) => getFillColor(d.type))
-        .attr("stroke", (d: IDomain) => getStrokeColor(d.type))
+        .attr("class", (d: IDomain) => `jsdomain-domain ${d.html_class}`)
         .attr("stroke-width", 1);
 
     // individual domain text
     group.selectAll("text.jsdomain-text")
         .data(orf.domains)
     .enter().append("text")
-        .text((d: IDomain) => getLabel(d.type))
+        .text((d: IDomain) => d.abbreviation)
         .attr("x", (d: IDomain) => scale((d.start + d.end) / 2))
         .attr("text-anchor", "middle")
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
@@ -150,153 +148,6 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
     d3selectAll("g.domain-group").data(region.orfs);
     init();
     redrawDomains();
-}
-
-function getStrokeColor(type: string): string {
-    switch (type) {
-        case "AMP-binding":
-        case "A-OX":
-            return "rgb(87,22,128)";
-        case "PCP":
-        case "ACP":
-            return "rgb(11,78,199)";
-        case "Cglyc":
-        case "CXglyc":
-        case "Condensation_DCL":
-        case "Condensation_LCL":
-        case "Condensation_Starter":
-        case "Condensation_Dual":
-        case "Heterocyclization":
-            return "rgb(59,59,140)";
-        case "Epimerization":
-            return "rgb(59,59,140)";
-        case "NRPS-COM_Nterm":
-        case "NRPS-COM_Cterm":
-        case "PKS_Docking_Nterm":
-        case "PKS_Docking_Cterm":
-        case "Trans-AT_docking":
-            return "rgb(71,71,159)";
-        case "Thioesterase":
-        case "TD":
-            return "rgb(119,3,116)";
-        case "PKS_KS":
-            return "rgb(9,179,9)";
-        case "PKS_AT":
-            return "rgb(221,6,6)";
-        case "PKS_KR":
-            return "rgb(10,160,76)";
-        case "PKS_DH":
-        case "PKS_DH2":
-        case "PKS_DHt":
-            return "rgb(186,103,15)";
-        case "PKS_ER":
-            return "rgb(12,161,137)";
-        case "Aminotran_1_2":
-        case "Aminotran_3":
-        case "Aminotran_4":
-        case "Aminotran_5":
-        case "Polyketide_cyc2":
-        default:
-            return "rgb(147,147,147)";
-    }
-}
-
-function getFillColor(type: string): string {
-    switch (type) {
-        case "AMP-binding":
-        case "A-OX":
-            return "rgb(188,127,245)";
-        case "PCP":
-        case "ACP":
-        case "ACP_beta":
-        case "ACPS":
-            return "rgb(129,190,247)";
-        case "Cglyc":
-        case "Condensation_DCL":
-        case "Condensation_LCL":
-        case "Condensation_Starter":
-        case "Condensation_Dual":
-        case "Heterocyclization":
-            return "rgb(129,129,247)";
-        case "Epimerization":
-            return "rgb(129,129,247)";
-        case "NRPS-COM_Nterm":
-        case "NRPS-COM_Cterm":
-        case "PKS_Docking_Nterm":
-        case "PKS_Docking_Cterm":
-        case "Trans-AT_docking":
-            return "rgb(128,128,245)";
-        case "Thioesterase":
-        case "TD":
-            return "rgb(245,196,242)";
-        case "PKS_KS":
-            return "rgb(129,247,129)";
-        case "PKS_AT":
-            return "rgb(247,129,129)";
-        case "PKS_KR":
-            return "rgb(128,246,128)";
-        case "PKS_DH":
-        case "PKS_DH2":
-        case "PKS_DHt":
-            return "rgb(247,190,129)";
-        case "PKS_ER":
-            return "rgb(129,247,243)";
-        default:
-            return "rgb(218,218,218)";
-    }
-}
-
-function getLabel(type: string): string {
-    switch (type) {
-        case "AMP-binding":
-            return "A";
-        case "A-OX":
-            return "A-OX";
-        case "PCP":
-        case "ACP":
-        case "ACP_beta":
-        case "ACPS":
-        case "NRPS-COM_Nterm":
-        case "NRPS-COM_Cterm":
-        case "PKS_Docking_Nterm":
-        case "PKS_Docking_Cterm":
-        case "Trans-AT_docking":
-        case "Aminotran_1_2":
-        case "Aminotran_3":
-        case "Aminotran_4":
-        case "Aminotran_5":
-        case "Polyketide_cyc":
-        case "Polyketide_cyc2":
-        case "TIGR01720":
-        case "TIGR02353":
-            return "";
-        case "Cglyc":
-        case "Condensation_DCL":
-        case "Condensation_LCL":
-        case "Condensation_Starter":
-        case "Condensation_Dual":
-        case "Heterocyclization":
-            return "C";
-        case "Epimerization":
-            return "E";
-        case "Thioesterase":
-            return "TE";
-        case "PKS_KS":
-            return "KS";
-        case "PKS_AT":
-            return "AT";
-        case "PKS_KR":
-            return "KR";
-        case "PKS_DH":
-        case "PKS_DH2":
-            return "DH";
-        case "PKS_DHt":
-            return "DHt";
-        case "PKS_ER":
-            return "ER";
-        default:
-            return type.split("_")[0];
-    }
 }
 
 function generateTooltip(domain: IDomain, orf: IDomainsOrf) {
