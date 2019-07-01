@@ -84,7 +84,6 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("x", (d: IDomain) => scale((d.start + d.end) / 2))
         .attr("text-anchor", "middle")
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
-        .attr("data-id", (d: IDomainsOrf, i: number) => `details-orf-${uniqueIndex}-${i}-tooltip`)
         .attr("class", "jsdomain-text")
         .attr("font-size", jsdomain.text_height)
         .attr("font-weight", "bold");
@@ -106,7 +105,7 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
         .attr("x", (module: IModule) => scale((module.start + module.end) / 2))
         .attr("y", (module: IModule) => currentOrfY + singleOrfHeight * (module.iterative ? 0.5 : 0.7))
         .attr("text-anchor", "middle")
-        .attr("class", "jsdomain-module-lid-text");
+        .attr("class", "jsdomain-text");
 
     const iterIcon: Path = path();  // this doesn't return itself for methods, so chaining won't work
     iterIcon.moveTo(50, 50);
@@ -265,34 +264,20 @@ function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
         });
 }
 
+function lidClick(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
+    $(this).hide();
+    if (event.clientX && event.clientY) {
+        const next = document.elementFromPoint(event.clientX, event.clientY);
+        if (next) {
+            $(next).click();
+        }
+    }
+    $(this).show();
+}
+
 function init() {
     $(".jsdomain-domain").click(tooltipHandler);
-    $(".jsdomain-text").click(function() {
-        const id = $(this).attr("id");
-        if (typeof id === "undefined") {
-            return;
-        }
-        $(`#${id.replace("-text", "-domain")}`).click();
-    });
-    $(".jsdomain-textarea").click((event) => event.stopPropagation());
-    let prev: JQuery<HTMLElement> | null;
-    $(".jsdomain-module-lid").mouseenter(function() {
-        if (prev) {
-            clearTimeout(prev.data("timeout"));
-            if (!$(this).is(prev)) {
-                prev.attr("style", "");
-                $(this).css("opacity", "0");
-            }
-        } else {
-            $(this).css("opacity", "0");
-        }
-    }).mouseleave(function() {
-        prev = $(this);
-        prev.data("timeout", setTimeout(() => {
-            $(this).attr("style", "");
-            prev = null;
-        }, 100));
-    });
+    $(".jsdomain-module-lid").click(lidClick);
 }
 
 export function redrawDomains() {
