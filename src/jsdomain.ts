@@ -309,11 +309,4 @@ export function createButtonHandlers() {
             $("input.show-module-domains").prop("checked", $(this).prop("checked"));
             redrawDomains();
         });
-    $("input.domains-toggle-bg")
-        .change(function() {
-            const active = $(this).prop("checked");
-            $(".domains-even").css("fill", active ? "" : "white");
-            // and apply the change to all regions
-            $("input.domains-toggle-bg").prop("checked", active);
-        });
 }
