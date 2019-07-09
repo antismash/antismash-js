@@ -145,6 +145,8 @@ function keyUpEvent(event: KeyboardEvent) {
         changeElementInRegion("sidepanel-details-header", -1);
     } else if (key === 70) {  // f
         changeElementInRegion("sidepanel-details-header", 1);
+    } else if (key === 77) {  // m
+        $("input.show-module-domains").first().click();
     }
 }
 
