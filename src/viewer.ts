@@ -105,7 +105,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
                 ? `candidate-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "candidate-hybrid"
                 : `svgene-border-${d.tool}`))
         .on("click", (d: ICluster) => {
-            if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !d3event.ctrlKey) {
+            if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !(d3event.ctrlKey || d3event.metaKey)) {
                 deselectOrfs();
             }
             select_by_range(d.neighbouring_start, d.neighbouring_end);
@@ -440,7 +440,7 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     // if a legend button is active, remove that
     $(".legend-selected").removeClass("legend-selected");
 
-    if (ev.ctrlKey) {
+    if (ev.ctrlKey || ev.metaKey) {
         multi_select($(this));
         return;
     }
@@ -574,7 +574,7 @@ function legend_selector(this: HTMLElement, event: JQuery.Event) {
         }
         return;
     }
-    if (!event.ctrlKey || $(".legend-selected").length === 0) {
+    if (!(event.ctrlKey || event.metaKey) || $(".legend-selected").length === 0) {
         $(".legend-selected").removeClass("legend-selected");
         deselectOrfs();
     }
