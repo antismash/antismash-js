@@ -644,7 +644,8 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     clusterLabels.transition().duration(duration)
         .attr("x", (d): number => scale((Math.max(d.start, start + 1) + Math.min(d.end, end - 1)) / 2));
     const ttaCodons: d3.Selection<SVGElement, ITTACodon, any, any> = d3selectAll(".svgene-tta-codon");
-    ttaCodons.transition().duration(duration)
+    ttaCodons.filter((d: ITTACodon) => typeof d !== "undefined")  // avoid the legend which isn't bound
+        .transition().duration(duration)
         .attr("points", (d: ITTACodon) => ttaCodonPoints(d, HEIGHT, orfY, verticalOffset));
 
     if (axis !== null) {
