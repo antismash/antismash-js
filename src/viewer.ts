@@ -169,6 +169,25 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("id", (d) => `u${idx}-region${regionIndex}-${tag_to_id(d.locus_tag)}-svgeneorf`)
         .attr("opacity", "1");
 
+    // Resistance markers
+    const resistBarY = orfY + LABEL_HEIGHT + height + 2;
+    const resistBarHeight = 7;
+    const resistanceOrfs: d3.Selection<SVGElement, IOrf, any, any> = chart.selectAll("rect.svgene-resist")
+        .data(allOrfs.filter((d: IOrf) => d.resistance))
+        .enter().append("rect")
+        .attr("class", "svgene-resistance")
+        .attr("width", (d: IOrf) => (scale(d.end) - scale(d.start)))
+        .attr("height", resistBarHeight)
+        .attr("x", (d: IOrf) => scale(d.start))
+        .attr("y", resistBarY);
+
+    // mark ORFs that have resistance markers
+    for (const orf of allOrfs.filter((d: IOrf) => d.resistance)) {
+        const id = `#u${idx}-region${regionIndex}-${tag_to_id(orf.locus_tag)}-svgeneorf`;
+        const orfElement: d3.Selection<SVGElement, IOrf, any, any> = d3select(id);
+        orfElement.classed("svgene-resistance-orf", true);
+    }
+
     // TTA codons
     const ttaCodonElements: d3.Selection<SVGGElement, ITTACodon, any, any> = chart.selectAll("polyline.svgene-tta-codon")
         .data(ttaCodons)
@@ -216,11 +235,19 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
         selectionEnd = region.end;
     }
 
+    let resistancesPresent = false;
+    for (const orf of region.orfs) {
+        if (orf.resistance) {
+            resistancesPresent = true;
+            break;
+        }
+    }
+
     const axisHeight = 20;
     const minimapHeight = 40;
     const clusterHeight = Math.max.apply(Math, region.clusters.map((border) => border.height)) * 12;
-    const ttaHeight = region.ttaCodons.length > 0 ? Math.floor(height * 2 / 3) : 0;
-    const realHeight = height + (2 * LABEL_HEIGHT) + clusterHeight + minimapHeight + axisHeight + ttaHeight;
+    const undergeneHeight = (resistancesPresent || region.ttaCodons.length > 0) ? Math.floor(height * 2 / 3) : 0;
+    const realHeight = height + (2 * LABEL_HEIGHT) + clusterHeight + minimapHeight + axisHeight + undergeneHeight;
     const regionIndex: number = region.idx;
 
     const container = d3select(`#${id}`);
@@ -562,7 +589,11 @@ function legend_selector(this: HTMLElement, event: JQuery.Event) {
         return;
     }
     let target = ".contains-tta-codon";
-    if (originalID !== "legend-tta-codon") {
+    if (originalID === "legend-tta-codon") {
+        target = ".contains-tta-codon";
+    } else if (originalID === "legend-resistance") {
+        target = ".svgene-resistance-orf";
+    } else {
         target = `.${originalID.replace("legend-", "svgene-")}`;
     }
 
@@ -643,6 +674,11 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     const clusterLabels: d3.Selection<SVGTextElement, ICluster, any, any> = d3selectAll(".clusterlabel");
     clusterLabels.transition().duration(duration)
         .attr("x", (d): number => scale((Math.max(d.start, start + 1) + Math.min(d.end, end - 1)) / 2));
+    const resistanceMarkers: d3.Selection<SVGElement, IOrf, any, any> = d3selectAll(".svgene-resistance");
+    // because both the data (because of the legend) and the resistance could be undefined
+    resistanceMarkers.filter((d: IOrf) => d && d.resistance === true)
+        .attr("x", (d: IOrf) => scale(d.start))
+        .attr("width", (d: IOrf) => scale(d.end) - scale(d.start));
     const ttaCodons: d3.Selection<SVGElement, ITTACodon, any, any> = d3selectAll(".svgene-tta-codon");
     ttaCodons.filter((d: ITTACodon) => typeof d !== "undefined")  // avoid the legend which isn't bound
         .transition().duration(duration)

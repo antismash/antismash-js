@@ -19,6 +19,7 @@ export interface IOrf {
     readonly type: string;
     readonly description: string;
     readonly locus_tag: string;
+    readonly resistance?: boolean;
     readonly color?: string;
 }
 
