@@ -6,7 +6,8 @@ import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
-import {createButtonHandlers, drawDomains} from "./jsdomain.js";
+import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
+import {drawPfamDomains, redrawPfamDomains} from "./pfams.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawRegion} from "./viewer.js";
@@ -42,9 +43,14 @@ function switchToRegion() {
         }
         // draw details domains after the region so locus to id conversion works correctly
         if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(`${anchor}-details-svg`, detailsData[anchor], 25);
+            drawDomains(`${anchor}-details-svg`, detailsData.nrpspks[anchor], 25);
+        }
+        if ($(`#${anchor}-pfam-details-svg`).length > 0) {
+            drawPfamDomains(`${anchor}`, detailsData.pfam[anchor], 25);
         }
         $(`#${anchor} .clusterblast-selector`).change();
+        // trigger any required click-event for the default details tab
+        $(`#${anchor} * .body-details-header-active`).first().click();
     }, 1);
 }
 
@@ -243,7 +249,14 @@ export function start(regions: any, details: any, records: IRecord[]) {
     $(".cluster-rules-header").click(toggle_cluster_rules);
     switchToRegion();
     createOverviewHandlers();
-    createButtonHandlers();
+    $("input.domains-selected-only")
+        .change(function() {
+            // apply the change to all regions
+            $("input.domains-selected-only").prop("checked", $(this).prop("checked"));
+            redrawDomains();
+            redrawPfamDomains();
+        });
+    createModuleHandlers();
     drawStructures();
     setupDetails(regions.order);
     addHelpTooltipHandlers();

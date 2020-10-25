@@ -1,17 +1,31 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
-export interface IDomain {  // maps to antismash.common.json.JSONDomain
-    readonly type: string;
+export interface IBaseDomain {
+    readonly html_class: string;
+    readonly translation: string;
     readonly start: number;
     readonly end: number;
+}
+
+export interface IDomain extends IBaseDomain {  // maps to antismash.common.json.JSONDomain
+    readonly type: string;
     readonly predictions: string[];
     readonly napdoslink: string;
     readonly blastlink: string;
     readonly sequence: string;
+    readonly identifier: string;
     readonly dna_sequence: string;
     readonly abbreviation: string;
-    readonly html_class: string;
+}
+
+export interface IPfamDomain extends IBaseDomain {
+    readonly name: string;
+    readonly description: string;
+    readonly accession: string;
+    readonly go_terms: string[];
+    readonly evalue: string;
+    readonly score: string;
 }
 
 export interface IOrf {
@@ -34,10 +48,18 @@ export interface IModule {
 }
 
 export interface IDomainsOrf {
-    readonly sequence: string;
     readonly id: string;
+}
+
+export interface INrpsPksOrf extends IDomainsOrf {
+    readonly sequence: string;
     readonly domains: IDomain[];
     readonly modules: IModule[];
+}
+
+export interface IPfamsOrf extends IDomainsOrf {
+    readonly pfams: IPfamDomain[];
+    readonly seqLength: number;
 }
 
 export interface ICluster {
@@ -72,7 +94,8 @@ export interface IRegion {
 
 export interface IDomainsRegion {
     readonly id: string;
-    readonly orfs: IDomainsOrf[];
+    readonly orfs: INrpsPksOrf[];
+    readonly pfamOrfs: IPfamsOrf[];
 }
 
 export interface IRecord {

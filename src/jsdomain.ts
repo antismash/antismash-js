@@ -7,7 +7,7 @@ import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 import {arc as d3arc} from "d3-shape";
 
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
-import {IDomain, IDomainsOrf, IDomainsRegion, IModule} from "./dataStructures.js";
+import {IDomain, IDomainsRegion, IModule, INrpsPksOrf} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
 
 let activeTooltip: JQuery<HTMLElement> | null;
@@ -18,7 +18,7 @@ const jsdomain = {
     version: "0.0.1",
 };
 
-function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
+function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
     const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 4; // +4 to fit the first
@@ -202,7 +202,7 @@ export function drawDomains(id: string, region: IDomainsRegion, height: number):
     redrawDomains();
 }
 
-function generateTooltip(domain: IDomain, orf: IDomainsOrf) {
+function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
     let html = `${domain.type}<br>Location: ${domain.start}-${domain.end} AA<br>`;
     if (domain.napdoslink.length > 0) {
         html += `<a href="${domain.napdoslink}" target="_blank">Analyze with NaPDoS</a><br>`;
@@ -295,14 +295,7 @@ export function redrawDomains() {
     }
 }
 
-export function createButtonHandlers() {
-    $(".nrps-pks-domain-buttons * .button-like").off("click");
-    $("input.domains-selected-only")
-        .change(function() {
-            // apply the change to all regions
-            $("input.domains-selected-only").prop("checked", $(this).prop("checked"));
-            redrawDomains();
-        });
+export function createModuleHandlers() {
     $("input.show-module-domains")
         .change(function() {
             // apply the change to all regions

@@ -561,10 +561,13 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
                 .attr("opacity", opacity)
                 .classed(SELECTED_ORF_CLASS, selected);
             // update domains related to this orf
+            const prefix = locusToFullId(data.locus_tag);
             if (selected) {  // not a toggle due to default state sync
-                $(`#${locusToFullId(data.locus_tag)}-domains`).show();
+                $(`#${prefix}-domains`).show();
+                $(`#${prefix}-pfam-domains`).show();
             } else {
-                $(`#${locusToFullId(data.locus_tag)}-domains`).hide();
+                $(`#${prefix}-domains`).hide();
+                $(`#${prefix}-pfam-domains`).hide();
             }
         });
 }
