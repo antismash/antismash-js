@@ -70,7 +70,8 @@ export interface ICluster {
     readonly product: string;
     readonly height: number;
     readonly tool: string;
-    readonly isCandidateCluster: boolean;
+    readonly kind: string;
+    readonly prefix: string;
 }
 
 export interface ITTACodon {
