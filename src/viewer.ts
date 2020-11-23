@@ -101,9 +101,13 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
     const clusterBars: d3.Selection<SVGGElement, ICluster, any, any> = chart.selectAll("g.cluster-bar-group")
         .data(borders)
         .enter().append("g").attr("class", (d: ICluster) => (
-            d.isCandidateCluster
+            d.kind === "candidatecluster"
                 ? `candidate-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "candidate-hybrid"
-                : `svgene-border-${d.tool}`))
+                : (d.kind === "subregion" && d.prefix.length === 0 // it isn't a sideloaded subregion
+                    ? `svgene-border-${d.tool}`
+                    : ""
+                  )
+        ))
         .on("click", (d: ICluster) => {
             if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !(d3event.ctrlKey || d3event.metaKey)) {
                 deselectOrfs();
@@ -123,7 +127,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("x", (d) => scale(d.neighbouring_start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
         .attr("opacity", "0.5")
-        .attr("class", (d) => `cluster-background ${d.product}`)
+        .attr("class", (d) => (d.kind === "subregion" ? "cluster-background" : `cluster-background ${d.product}`))
         .style("stroke-width", "0");
     // extent lines
     clusterBars.append("line")
@@ -138,19 +142,23 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("height", barSize)
         .attr("x", (d) => scale(d.start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
-        .attr("class", (d) => `cluster-core ${d.product}`)
+        .attr("class", (d) => (d.kind === "subregion"
+                                 ? (d.prefix
+                                    ? "cluster-core"
+                                    : `cluster-core svgene-border-${d.tool}`)
+                                 : `cluster-core ${d.product}`))
         .style("stroke", "black");
     // cluster name
     clusterBars.append("text")
         .attr("x", (d) => scale((d.start + d.end) / 2))
-        .attr("y", (d) => (d.tool === "rule-based-clusters"
+        .attr("y", (d) => (d.kind === "protocluster"
                                             ? ((d.height - 1) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)
                                             : ((d.height) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)))
         .style("font-size", "xx-small")
         .attr("class", "clusterlabel")
         .attr("text-anchor", "middle")
         .style("pointer-events", "none")
-        .text((d) => d.product.replace("_", " "));
+        .text((d) => (d.prefix + d.product.replace("_", " ")));
 
     // ORFs
     const orfs: d3.Selection<SVGGElement, IOrf, any, any> = chart.selectAll("g.orf-group")
