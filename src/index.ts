@@ -12,6 +12,8 @@ import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawRegion} from "./viewer.js";
 
+export { downloadSvg } from "./downloader.js";
+
 let allRegions: any = null;
 let detailsData: any = null;
 
