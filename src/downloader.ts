@@ -7,8 +7,8 @@ const PREFIX = {
     xmlns: "http://www.w3.org/2000/xmlns/",
 };
 
-export const downloadSvg = (id: string, region: string): void => {
-    const svgContainer = document.querySelector(`#${region}-svg`);
+export const downloadSvg = (id: string, filename: string): void => {
+    const svgContainer = document.querySelector(`#${id}`);
     if (!svgContainer) {
         return;
     }
@@ -25,7 +25,7 @@ export const downloadSvg = (id: string, region: string): void => {
 
     const a = document.createElement("a");
     a.href = data;
-    a.download = `${id}_${region}.svg`;
+    a.download = filename;
 
     const clickHandler = (event: Event) => {
         setTimeout(() => {
