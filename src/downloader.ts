@@ -7,6 +7,29 @@ const PREFIX = {
     xmlns: "http://www.w3.org/2000/xmlns/",
 };
 
+export const initDownloadButtons = (): void => {
+    const buttons = document.querySelectorAll(".download-svg");
+    buttons.forEach((button) => {
+        button.removeEventListener("click", downloadSvgListener, false);
+        button.addEventListener("click", downloadSvgListener, false);
+    });
+};
+
+function downloadSvgListener(event: Event): boolean {
+    if (!event.target) {
+        // Something is odd here, allow the event to bubble up.
+        return true;
+    }
+    const button = event.target as HTMLElement;
+    const tagId = button.getAttribute("data-tag");
+    const filename = button.getAttribute("data-filename");
+    if (!tagId || !filename) {
+        return false;
+    }
+    downloadSvg(tagId, filename);
+    return false;
+}
+
 export const downloadSvg = (id: string, filename: string): void => {
     const svgContainer = document.querySelector(`#${id}`);
     if (!svgContainer) {

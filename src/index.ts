@@ -6,6 +6,7 @@ import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
+import {initDownloadButtons} from "./downloader.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {drawPfamDomains, redrawPfamDomains} from "./pfams.js";
 import {createRecordOverviews} from "./recordOverview.js";
@@ -264,4 +265,5 @@ export function start(regions: any, details: any, records: IRecord[]) {
     addHelpTooltipHandlers();
     $(".clipboard-copy").off("click").click(copyToClipboard);
     $(".collapser").click(toggleCollapserHandler);
+    initDownloadButtons();
 }
