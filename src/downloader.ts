@@ -36,10 +36,18 @@ export const downloadSvg = (id: string, filename: string): void => {
         return;
     }
 
-    const svg = svgContainer.children.item(0);
-    if (!svg || svg.nodeName !== "svg") {
+    let origSvg: Element | null;
+
+    if (svgContainer.nodeName === "svg") {
+        origSvg = svgContainer;
+    } else {
+        origSvg = svgContainer.children.item(0);
+    }
+    if (!origSvg || origSvg.nodeName !== "svg") {
         return;
     }
+
+    const svg = origSvg.cloneNode(true);
 
     fixupSvg(svg as SVGElement);
 
@@ -71,8 +79,9 @@ function fixupSvg(svg: SVGElement): void {
     if (!svg.hasAttributeNS(PREFIX.xmlns, "xmlns:xlink")) {
         svg.setAttributeNS(PREFIX.xmlns, "xmlns:xlink", PREFIX.xlink);
     }
-
+    document.body.appendChild(svg);
     styleSvg(svg);
+    document.body.removeChild(svg);
 }
 
 function setStyle(element: Element, emptySVGStyle: CSSStyleDeclaration): void {
