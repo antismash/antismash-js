@@ -37,10 +37,10 @@ function switchToRegion() {
         $(".regbutton").removeClass("active");
         const anchor = getAnchor();
         $(`#${anchor}`).show();
-        if (anchor !== "overview") {
-            $(`.regbutton.${anchor}`).addClass("active");
+        if (anchor === "overview") {
+            return;
         }
-
+        $(`.regbutton.${anchor}`).addClass("active");
         if (allRegions[anchor] !== undefined) {
             drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
         }
