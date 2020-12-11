@@ -4,6 +4,7 @@
 import {copyToClipboard} from "./clipboard.js";
 import {init as prepClusterblast} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
+import {setComparisonData} from "./comparison.js";
 import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
 import {initDownloadButtons} from "./downloader.js";
@@ -17,6 +18,7 @@ export { downloadSvg } from "./downloader.js";
 
 let allRegions: any = null;
 let detailsData: any = null;
+let resultsData: any = null;
 
 function toggle_downloadmenu(event: JQuery.Event) {
     event.preventDefault();
@@ -52,6 +54,8 @@ function switchToRegion() {
             drawPfamDomains(`${anchor}`, detailsData.pfam[anchor], 25);
         }
         $(`#${anchor} .clusterblast-selector`).change();
+        $(`#${anchor} .comparison-selector`).change();
+        setComparisonData(anchor, resultsData[anchor]["antismash.modules.cluster_compare"], allRegions[anchor]);
         // trigger any required click-event for the default details tab
         $(`#${anchor} * .body-details-header-active`).first().click();
     }, 1);
@@ -196,10 +200,11 @@ function addHelpTooltipHandlers() {
     });
 }
 
-export function start(regions: any, details: any, records: IRecord[]) {
+export function start(regions: any, details: any, results: any, records: IRecord[]) {
     createRecordOverviews(records);
     allRegions = regions;
     detailsData = details;
+    resultsData = results;
     document.addEventListener("keyup", keyUpEvent, false);
     $("#download").click(toggle_downloadmenu);
 
@@ -248,7 +253,13 @@ export function start(regions: any, details: any, records: IRecord[]) {
         $(`#${id}-download`).off("click");
         $(`#${id}-download`).click(() => window.open("" + $(`#${id}-select`).val(), "_blank"));
     });
-
+    $(".comparison-selector").change(function() {
+        const id = ($(this).attr("id") || "nonexistant").replace("-selector", "");
+        $(`#${id}`).siblings().removeClass("comparison-container-active");
+        const kind = $(this).attr("data-tag");
+        $(`#${id}-${$(this).val()}`).addClass("comparison-container-active")
+            .find(`.heat-row-${kind}`).first().click();
+    });
     $(".cluster-rules-header").click(toggle_cluster_rules);
     switchToRegion();
     createOverviewHandlers();

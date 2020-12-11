@@ -33,6 +33,24 @@ const VERSION: string = "0.0.1";
 
 const SELECTED_ORF_CLASS = "svgene-selected-orf";
 
+export function selectOrfsByLoci(tags: string[], multiSelect?: boolean) {
+    if (!displayedRegion) {
+        return;
+    }
+    if (tags.length < 1) {
+        return;
+    }
+    let selection = $(`#${locusToFullId(tags[0])}-svgeneorf`);
+    for (const tag of tags.slice(1)) {
+        selection = selection.add(`#${locusToFullId(tag)}-svgeneorf`);
+    }
+    if (multiSelect) {
+        multi_select(selection);
+    } else {
+        cdsSelector(selection);
+    }
+}
+
 export function locusToFullId(locusTag: string): string {
     if (!displayedRegion) {
         return `${tag_to_id(locusTag)}`;
@@ -446,7 +464,7 @@ function sort_biosynthetic_orfs_last(a: IOrf, b: IOrf): number {
     return -1;
 }
 
-function tag_to_id(tag: string): string {
+export function tag_to_id(tag: string): string {
     return tag.replace(/(:|\.)/g, "-").replace(/-svgeneorf/g, "_orf");
 }
 
@@ -469,9 +487,6 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
 }
 
 function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
-    if (!displayedRegion) {
-        return;
-    }
     // if a legend button is active, remove that
     $(".legend-selected").removeClass("legend-selected");
 
@@ -479,8 +494,14 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
         multi_select($(this));
         return;
     }
+    cdsSelector($(this));
+}
 
-    const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
+function cdsSelector(element: JQuery<HTMLElement>): void {
+    if (!displayedRegion) {
+        return;
+    }
+    const node: d3.Selection<any, IOrf, any, any> = d3selectAll(element.toArray());
     const data: IOrf = node.datum();
     const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
     panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
@@ -489,9 +510,9 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
         selectOrfs();
     } else {
         deselectOrfs();
-        selectOrfs($(this));
+        selectOrfs(element);
     }
-    toggleCDSCollapserMatchingElement($(this), "cds");
+    toggleCDSCollapserMatchingElement(element, "cds");
 }
 
 function createHandlers(): void {
