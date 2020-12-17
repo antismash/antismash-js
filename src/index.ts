@@ -54,12 +54,12 @@ function switchToRegion() {
             drawPfamDomains(`${anchor}`, detailsData.pfam[anchor], 25);
         }
         $(`#${anchor} .clusterblast-selector`).change();
-        $(`#${anchor} .comparison-selector`).change();
         if (anchor in resultsData) {
             if ("antismash.modules.cluster_compare" in resultsData[anchor]) {
                 setComparisonData(anchor, resultsData[anchor]["antismash.modules.cluster_compare"], allRegions[anchor]);
             }
         }
+        $(`#${anchor} .comparison-selector`).change();
         // trigger any required click-event for the default details tab
         $(`#${anchor} * .body-details-header-active`).first().click();
     }, 1);
