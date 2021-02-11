@@ -18,6 +18,36 @@ const jsdomain = {
     version: "0.0.1",
 };
 
+function buildMultiCDSModulePath(module: IModule, scale: d3.ScaleLinear<number, number>,
+                                 top: number, height: number, radius: number) {
+    const detail = path();
+    const start = scale(module.start);
+    const end = scale(module.end);
+    const bottom = top + height;
+    if (module.multi_cds === "head") {
+        detail.moveTo(end + radius, top);  // top right
+        detail.lineTo(end, top + height / 3);  // jaggy in
+        detail.lineTo(end + radius, top + 2 * height / 3); // jaggy out
+        detail.lineTo(end, bottom); // bottom right
+        detail.lineTo(start + radius, bottom);
+        detail.arcTo(start, bottom, start, top, radius);  // radiused bottom left corner
+        detail.lineTo(start, top + radius);
+        detail.arcTo(start, top, end, top, radius);  // radiused top left corner
+    } else {
+        detail.moveTo(end - radius, top);  // top right
+        detail.arcTo(end, top, end, bottom, radius);
+        detail.lineTo(end, bottom - radius);
+        detail.arcTo(end, bottom, start, bottom, radius);
+        detail.lineTo(start - radius, bottom);
+        detail.lineTo(start, top + 2 * height / 3);  // jaggy in
+        detail.lineTo(start - radius, top + height / 3); // jaggy out
+        detail.lineTo(start, top);
+    }
+    detail.closePath();
+
+    return detail.toString();
+}
+
 function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
@@ -33,7 +63,7 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         .attr("data-locus", orf.id);
     // module bases
     group.selectAll("rect.jsdomain-module")
-        .data(orf.modules)
+        .data(orf.modules.filter((d) => !d.multi_cds))
     .enter().append("rect")
         .attr("x", (d: IModule) => scale(d.start))
         .attr("y", currentOrfY - 3)
@@ -41,6 +71,22 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         .attr("height", singleOrfHeight + 6)
         .attr("rx", radius)
         .attr("class", (d: IModule) => d.complete ? "jsdomain-module" : "jsdomain-module jsdomain-incomplete-module");
+    // multi CDS module match identifiers
+    group.selectAll("text.jsdomain-match")
+        .data(orf.modules.filter((d) => d.multi_cds))
+    .enter().append("text")
+        .text((module: IModule) => module.match_id)
+        .attr("x", (module: IModule) => scale(module.multi_cds === "head" ? module.end : module.start)
+                                        + (module.multi_cds === "head" ? radius + 2 : -radius))
+        .attr("y", (module: IModule) => currentOrfY + (module.multi_cds === "head" ? 2 : 4) * singleOrfHeight / 4 - 2)
+        .attr("text-anchor", "middle")
+        .attr("class", "jsdomain-match");
+
+    group.selectAll("path.jsdomain-module")
+        .data(orf.modules.filter((d) => d.multi_cds))
+    .enter().append("path")
+        .attr("d", (d: IModule) => buildMultiCDSModulePath(d, scale, currentOrfY - 3, singleOrfHeight + 6, radius))
+        .attr("class", "jsdomain-module");  // all multiCDS modules must be complete
 
     // centerline
     group.append("line")
@@ -91,7 +137,7 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
 
     // module lids
     const moduleLids = group.selectAll("g.jsdomain-module-lid")
-        .data(orf.modules.filter((d) => d.complete))
+        .data(orf.modules.filter((d) => d.complete && !d.multi_cds))
     .enter().append("g")
         .attr("class", "jsdomain-module-lid");
     moduleLids.append("rect")
@@ -102,6 +148,20 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         .attr("rx", radius)
         .attr("class", "jsdomain-module-lid-body");
     moduleLids.append("text")
+        .text((module: IModule) => module.monomer || "no prediction")
+        .attr("x", (module: IModule) => scale((module.start + module.end) / 2))
+        .attr("y", (module: IModule) => currentOrfY + singleOrfHeight * (module.iterative ? 0.5 : 0.7))
+        .attr("text-anchor", "middle")
+        .attr("class", "jsdomain-text");
+
+    const fragmentLids = group.selectAll("g.jsdomain-module-lid-fragment")
+        .data(orf.modules.filter((d) => d.multi_cds))
+    .enter().append("g")
+        .attr("class", "jsdomain-module-lid jsdomain-module-lid-fragment");
+    fragmentLids.append("path")
+        .attr("d", (d: IModule) => buildMultiCDSModulePath(d, scale, currentOrfY - 3, singleOrfHeight + 6, radius))
+        .attr("class", "jsdomain-module-lid-body");  // all multiCDS modules must be complete
+    fragmentLids.append("text")
         .text((module: IModule) => module.monomer || "no prediction")
         .attr("x", (module: IModule) => scale((module.start + module.end) / 2))
         .attr("y", (module: IModule) => currentOrfY + singleOrfHeight * (module.iterative ? 0.5 : 0.7))

@@ -45,6 +45,8 @@ export interface IModule {
     readonly complete: boolean;
     readonly monomer: string;
     readonly iterative: boolean;
+    readonly multi_cds: string;
+    readonly match_id: string;
 }
 
 export interface IDomainsOrf {
