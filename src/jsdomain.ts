@@ -23,6 +23,7 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
     const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 4; // +4 to fit the first
     const group = chart.append("g").attr("class", "domain-group");
+    const radius = 5;
     // label
     group.append("text")
         .text(orf.id)
@@ -38,7 +39,7 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         .attr("y", currentOrfY - 3)
         .attr("width", (d: IModule) => scale(d.end) - scale(d.start))
         .attr("height", singleOrfHeight + 6)
-        .attr("rx", 5)
+        .attr("rx", radius)
         .attr("class", (d: IModule) => d.complete ? "jsdomain-module" : "jsdomain-module jsdomain-incomplete-module");
 
     // centerline
@@ -98,7 +99,7 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         .attr("y", currentOrfY - 3)
         .attr("width", (module: IModule) => scale(module.end) - scale(module.start))
         .attr("height", singleOrfHeight + 6)
-        .attr("rx", 5)
+        .attr("rx", radius)
         .attr("class", "jsdomain-module-lid-body");
     moduleLids.append("text")
         .text((module: IModule) => module.monomer || "no prediction")
