@@ -7,6 +7,7 @@ import {toggleCollapserHandler} from "./collapsers.js";
 import {setComparisonData} from "./comparison.js";
 import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
+import {drawDomainBubbleData} from "./domainBubbles.js";
 import {initDownloadButtons} from "./downloader.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {drawPfamDomains, redrawPfamDomains} from "./pfams.js";
@@ -15,6 +16,8 @@ import {drawStructures} from "./structureDrawing.js";
 import {drawRegion} from "./viewer.js";
 
 export { downloadSvg } from "./downloader.js";
+
+const visualiserRoot = "antismash.outputs.html.visualisers";
 
 let allRegions: any = null;
 let detailsData: any = null;
@@ -57,6 +60,9 @@ function switchToRegion() {
         if (anchor in resultsData) {
             if ("antismash.modules.cluster_compare" in resultsData[anchor]) {
                 setComparisonData(anchor, resultsData[anchor]["antismash.modules.cluster_compare"], allRegions[anchor]);
+            }
+            if (`${visualiserRoot}.bubble_view` in resultsData[anchor]) {
+                drawDomainBubbleData(anchor, resultsData[anchor][`${visualiserRoot}.bubble_view`]);
             }
         }
         $(`#${anchor} .comparison-selector`).change();
