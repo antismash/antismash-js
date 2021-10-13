@@ -7,8 +7,14 @@ import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 import {arc as d3arc} from "d3-shape";
 
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
-import {IDomainsRegion, IModule, IPfamDomain, IPfamsOrf} from "./dataStructures.js";
+import {IDomainsOrf, IDomainsRegion, IHmmerDomain, IModule} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
+
+interface ITool {
+    name: string;
+    data: IDomainsOrf[];
+    url: string;
+}
 
 let activeTooltip: JQuery<HTMLElement> | null;
 
@@ -18,11 +24,15 @@ const jsdomain = {
     version: "0.0.1",
 };
 
-const DOMAIN_CLASS = "pfam-domain";
+let regionData: any = null;  // storage for multiple tools
+let drawHeight: number = 25;
 
-function addOrfDomainsToSVG(chart: any, orf: IPfamsOrf, position: number,
+const DOMAIN_CLASS = "generic-domain";
+
+function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
-                            singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
+                            singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>,
+                            tool: ITool, alwaysShowText: boolean = false) {
     const currentOrfY = (singleOrfHeight + interOrfPadding) * position + 4; // +4 to fit the first
     const group = chart.append("g").attr("class", "domain-group");
     // label
@@ -56,23 +66,26 @@ function addOrfDomainsToSVG(chart: any, orf: IPfamsOrf, position: number,
       .attr("class", `${DOMAIN_CLASS}-line`);
     // individual domains
     group.selectAll(`rect.${DOMAIN_CLASS}-domain`)
-        .data(orf.pfams)
+        .data(orf.domains)
     .enter().append("rect")
-        .attr("x", (d: IPfamDomain) => scale(d.start))
+        .attr("x", (d: IHmmerDomain) => scale(d.start))
         .attr("y", currentOrfY)
         .attr("rx", 17)
         .attr("ry", 17)
-        .attr("width", (d: IPfamDomain) => scale(d.end) - scale(d.start))
+        .attr("width", (d: IHmmerDomain) => scale(d.end) - scale(d.start))
         .attr("height", singleOrfHeight)
-        .attr("data-id", (d: IPfamDomain, i: number) => `pfam-details-orf-${uniqueIndex}-${i}-tooltip`)
-        .attr("class", (d: IPfamDomain) => `${DOMAIN_CLASS}-domain ${d.html_class}`)
-        .attr("stroke-width", (d: IPfamDomain) => d.go_terms.length > 0 ? 3 : 1);
+        .attr("data-id", (d: IHmmerDomain, i: number) => `${tool.name}-details-orf-${uniqueIndex}-${i}-tooltip`)
+        .attr("class", (d: IHmmerDomain) => `${DOMAIN_CLASS}-domain ${d.html_class ? d.html_class : "generic-type-other"}`)
+        .attr("stroke-width", (d: IHmmerDomain) => d.go_terms && d.go_terms.length > 0 ? 3 : 1);
 
     // individual domain text
     group.selectAll(`text.${DOMAIN_CLASS}-text`)
-        .data(orf.pfams)
+        .data(orf.domains)
     .enter().append("text")
-        .text((d: IPfamDomain) => {
+        .text((d: IHmmerDomain) => {
+            if (alwaysShowText) {
+                return d.name;
+            }
             const domainWidth = scale(d.end) - scale(d.start);
             const lower = (d.name.match(/[a-z]/g) || []).length;
             const upper = (d.name.match(/[A-Z]/g) || []).length;
@@ -80,39 +93,46 @@ function addOrfDomainsToSVG(chart: any, orf: IPfamsOrf, position: number,
             const size = upper * 16 + punctuation * 18 + lower * 8;
             return domainWidth > size ? d.name : "...";
         })
-        .attr("x", (d: IPfamDomain) => scale((d.start + d.end) / 2))
+        .attr("x", (d: IHmmerDomain) => scale((d.start + d.end) / 2))
         .attr("text-anchor", "middle")
         .attr("y", currentOrfY + singleOrfHeight * 0.7)
-        .attr("class", (d: IPfamDomain) => `${DOMAIN_CLASS}-text ${d.html_class}`)
+        .attr("class", (d: IHmmerDomain) => `${DOMAIN_CLASS}-text ${d.html_class}`)
         .attr("font-size", jsdomain.text_height)
         .attr("font-weight", "bold");
 }
 
-export function drawPfamDomains(anchor: string, region: IDomainsRegion, height: number): void {
-    $(`.${anchor}-pfam-details`).off(".firstClick").one("click.firstClick", () => {
-        actualDrawPfamDomains(`${anchor}-pfam-details-svg`, region, height);
-    });
+/**
+ * Expected entry point from index.js, adds all the relevant handlers
+ */
+export function drawGenericDomains(anchor: string, data: any, height: number): void {
+    regionData = data;
+    drawHeight = height;
+    for (const tool of data) {
+        $(`.${anchor}-${tool.name}-details`).off(".firstClick").one("click.firstClick", () => {
+            actualDrawGenericDomains(`${anchor}-${tool.name}-details-svg`, tool, height);
+        });
+    }
 }
 
-function actualDrawPfamDomains(id: string, region: IDomainsRegion, height: number): void {
+function actualDrawGenericDomains(id: string, tool: ITool, height: number): void {
     // if they already exist, don't draw them again
     if ($(`#${id}`).find(`svg.${DOMAIN_CLASS}-svg`).length > 0) {
         return;
     }
+    const long = $(`input.domains-expand-full`).prop("checked");
     const container = d3select(`#${id}`);
     const singleOrfHeight = height;
     const interOrfPadding = 10;
-    const width = $(`#${id}`).width() || 1200;
-    const realHeight = (singleOrfHeight + interOrfPadding) * region.pfamOrfs.length;
+    let width = $(`#${id}`).width() || 1200;
+    const realHeight = (singleOrfHeight + interOrfPadding) * tool.data.length;
     const chart = container.append("svg")
         .attr("height", realHeight)
-        .attr("width", width)
-        .attr("viewbox", `-1 -1 ${width} ${realHeight}`)
+        .attr("width", width)  // for expanded mode this is just a placeholder and changes later
         .attr("class", `${DOMAIN_CLASS}-svg`);
 
     let maxOrfLength = 0;
     let longestName = "";
-    for (const orf of region.pfamOrfs) {
+    for (const orf of tool.data) {
         maxOrfLength = Math.max(maxOrfLength, orf.seqLength || 0);
         if (longestName.length < orf.id.length) {
             longestName = orf.id;
@@ -120,14 +140,35 @@ function actualDrawPfamDomains(id: string, region: IDomainsRegion, height: numbe
     }
 
     // find the exact length of the longest ORF name
-    const dummyLabel = chart.append("g").append("text")
+    const dummyLabelGroup = chart.append("g");
+    const dummyLabel = dummyLabelGroup.append("text")
         .text(longestName)
         .attr("x", 0)
         .attr("y", 0)
         .attr("id", "dummy-label");
-
     const maxNameWidth = (dummyLabel.node() as SVGTextElement).getComputedTextLength() || (longestName.length * 10);
-    dummyLabel.remove();
+
+    // if in expand mode, find the scaling required to fit every label into each domain
+    if (long) {
+        let factor = 0;
+        dummyLabel.attr("class", `${DOMAIN_CLASS}-text`);
+        for (const orf of tool.data) {
+            for (const domain of orf.domains) {
+                dummyLabel.text(domain.name);
+                const length = domain.end - domain.start;
+                const text = (dummyLabel.node() as SVGTextElement).getComputedTextLength();
+                const current = text / length;
+                if (current > factor) {
+                    factor = current;
+                }
+            }
+        }
+        // update the width for scaling and presentation
+        width = factor * maxOrfLength;
+        chart.attr("width", width)
+          .attr("viewbox", `-1 -1 ${width} ${realHeight}`);
+    }
+    dummyLabelGroup.remove();
 
     const x = d3scaleLinear()
       .domain([1, maxOrfLength * 1.02])  // pad slightly to allow for a clean end
@@ -136,61 +177,67 @@ function actualDrawPfamDomains(id: string, region: IDomainsRegion, height: numbe
     const singles = container.append("div").attr("class", `${DOMAIN_CLASS}-svg-singles`);
 
     const singleSVGHeight = singleOrfHeight + interOrfPadding * 0.8;
-    for (let i = 0; i < region.pfamOrfs.length; i++) {
-        const orf = region.pfamOrfs[i];
+    for (let i = 0; i < tool.data.length; i++) {
+        const orf = tool.data[i];
         const idx = jsdomain.unique_id++;
 
         // create a single feature SVG
+        const fullId = locusToFullId(orf.id);
+        const orfClass = `${fullId}-generic-domains`;
         const singleSVG = singles.append("svg")
             .attr("height", singleSVGHeight)  // since there's no second orf
-            .attr("width", "100%")
+            .attr("width", long ? width : "100%")
             .attr("viewbox", `-1 -1 ${width} ${singleSVGHeight}`)
-            .attr("class", `${DOMAIN_CLASS}-svg-single`)
-            .attr("id", `${locusToFullId(orf.id)}-pfam-domains`);
+            .attr("class", `${DOMAIN_CLASS}-svg-single ${orfClass}`);
         // add the domain
-        addOrfDomainsToSVG(singleSVG, orf, 0, idx, interOrfPadding, singleOrfHeight, width, x);
-        addOrfDomainsToSVG(chart, orf, i, idx, interOrfPadding, singleOrfHeight, width, x);
+        addOrfDomainsToSVG(singleSVG, orf, 0, idx, interOrfPadding, singleOrfHeight, width, x, tool, long);
+        addOrfDomainsToSVG(chart, orf, i, idx, interOrfPadding, singleOrfHeight, width, x, tool, long);
 
         // as these are created after genes can be selected, set the visibility if relevant
         // again, don't use JQuery for the class check because it's terrible with SVGs
-        if (!$(`#${locusToFullId(orf.id)}-svgeneorf`)[0].classList.contains("svgene-selected-orf")) {
-            $(`#${locusToFullId(orf.id)}-pfam-domains`).hide();
+        if (!$(`#${fullId}-svgeneorf`)[0].classList.contains("svgene-selected-orf")) {
+            $(`.${orfClass}`).hide();
         }
 
-        const toolGroup = container.append("div").attr("id", `pfam-details-orf-${idx}`);
+        const toolGroup = container.append("div").attr("id", `${tool.name}-details-orf-${idx}`);
         toolGroup.selectAll(`div.${DOMAIN_CLASS}-tooltip`)
-            .data(orf.pfams)
+            .data(orf.domains)
             .enter()
             .append("div")
                 .attr("class", `${DOMAIN_CLASS}-tooltip`)
-                .attr("id", (d, j) => `pfam-details-orf-${idx}-${j}-tooltip`)
-                .html((d) => generateTooltip(d, orf));
+                .attr("id", (d, j) => `${tool.name}-details-orf-${idx}-${j}-tooltip`)
+                .html((d) => generateTooltip(d, tool.url));
         $(`.${DOMAIN_CLASS}-tooltip .clipboard-copy`).off("click").click(copyToClipboard);
     }
     // label as selector as per viewer
     $(`.${DOMAIN_CLASS}-orflabel`).off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
         $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
     });
-    d3selectAll("g.domain-group").data(region.pfamOrfs);
+    d3selectAll("g.domain-group").data(tool.data);
     init();
-    redrawPfamDomains();
+    redrawGenericDomains();
 }
 
-function generateTooltip(domain: IPfamDomain, orf: IPfamsOrf) {
-    const url = `https://pfam.xfam.org/family/${domain.accession}`;
-    const link = `<a class='external-link' target='_blank' href="${url}">${domain.accession}</a>`;
-    let html = `${link} - ${domain.name}<br>`;
+function generateTooltip(domain: IHmmerDomain, url: string) {
+    let html = `${domain.name}<br>`;
+    if (url.length > 0) {
+        const link = `<a class='external-link' target='_blank' href="${url.replace("$ACCESSION", domain.accession)}">${domain.accession}</a>`;
+        if (domain.accession !== domain.name) {
+            html = `${link} - ${domain.name}<br>`;
+        } else {
+            html = `${link}<br>`;
+        }
+    }
     html += `Location: ${domain.start}-${domain.end} AA<br>`;
     html += `Score: ${domain.score}, E-Value: ${domain.evalue}<br>`;
     html += `${domain.description}<br><br>`;
-    if (domain.go_terms.length > 0) {
+    if (domain.go_terms && domain.go_terms.length > 0) {
         html += "Gene Ontologies:<br>";
         for (const go of domain.go_terms) {
             html += `&nbsp;${go}<br>`;
         }
         html += "<br>";
     }
-    html += `AA sequence: ${clipboardCopyConstruct(domain.translation)}<br>`;
 
     return html;
 }
@@ -240,7 +287,23 @@ function init() {
     $(`.${DOMAIN_CLASS}-domain`).click(tooltipHandler);
 }
 
-export function redrawPfamDomains() {
+export function redrawGenericDomains(options: any = null) {
+    if (options && options.reset) {
+        // reset everything, including the first click handlers
+        drawGenericDomains(options.anchor, regionData, drawHeight);
+
+        for (const tool of regionData) {
+            const prefix = `${options.anchor}-${tool.name}-details`;
+            const id = `${prefix}-svg`;
+            // remove all the existing SVGs, since they'll all be wrong
+            $(`#${id}`).empty();
+            // if a tab is active, then don't wait for the click, just draw straight away
+            if ($(`.${prefix}`).hasClass("body-details-header-active")) {
+                $(`.${prefix}`).off(".firstClick");
+                actualDrawGenericDomains(`${prefix}-svg`, tool, drawHeight);
+            }
+        }
+    }
     if ($(`input.domains-selected-only`).prop("checked")) {
         $(`.${DOMAIN_CLASS}-svg`).hide();
         $(`.${DOMAIN_CLASS}-svg-singles`).show();

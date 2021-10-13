@@ -9,8 +9,8 @@ import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
 import {drawDomainBubbleData} from "./domainBubbles.js";
 import {initDownloadButtons} from "./downloader.js";
+import {drawGenericDomains, redrawGenericDomains} from "./genericDomains.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
-import {drawPfamDomains, redrawPfamDomains} from "./pfams.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawRegion} from "./viewer.js";
@@ -37,6 +37,7 @@ export function getAnchor(): string {
 }
 
 function switchToRegion() {
+    const domainOrfHeight = 25;
     setTimeout(() => {
         $(".page").hide();
         $(".regbutton").removeClass("active");
@@ -51,10 +52,7 @@ function switchToRegion() {
         }
         // draw details domains after the region so locus to id conversion works correctly
         if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(`${anchor}-details-svg`, detailsData.nrpspks[anchor], 25);
-        }
-        if ($(`#${anchor}-pfam-details-svg`).length > 0) {
-            drawPfamDomains(`${anchor}`, detailsData.pfam[anchor], 25);
+            drawDomains(`${anchor}-details-svg`, detailsData.nrpspks[anchor], domainOrfHeight);
         }
         $(`#${anchor} .clusterblast-selector`).change();
         if (anchor in resultsData) {
@@ -63,6 +61,9 @@ function switchToRegion() {
             }
             if (`${visualiserRoot}.bubble_view` in resultsData[anchor]) {
                 drawDomainBubbleData(anchor, resultsData[anchor][`${visualiserRoot}.bubble_view`]);
+            }
+            if (`${visualiserRoot}.generic_domains` in resultsData[anchor]) {
+                drawGenericDomains(anchor, resultsData[anchor][`${visualiserRoot}.generic_domains`], domainOrfHeight);
             }
         }
         $(`#${anchor} .comparison-selector`).change();
@@ -278,8 +279,13 @@ export function start(regions: any, details: any, results: any, records: IRecord
             // apply the change to all regions
             $("input.domains-selected-only").prop("checked", $(this).prop("checked"));
             redrawDomains();
-            redrawPfamDomains();
+            redrawGenericDomains();
         });
+    $(`input.domains-expand-full`).change(function() {
+        // apply the change to all regions
+        $("input.domains-expand-full").prop("checked", $(this).prop("checked"));
+        redrawGenericDomains({reset: true, anchor: getAnchor()});
+    });
     createModuleHandlers();
     drawStructures();
     setupDetails(regions.order);

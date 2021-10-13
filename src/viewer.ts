@@ -593,10 +593,10 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
             const prefix = locusToFullId(data.locus_tag);
             if (selected) {  // not a toggle due to default state sync
                 $(`#${prefix}-domains`).show();
-                $(`#${prefix}-pfam-domains`).show();
+                $(`.${prefix}-generic-domains`).show();
             } else {
                 $(`#${prefix}-domains`).hide();
-                $(`#${prefix}-pfam-domains`).hide();
+                $(`.${prefix}-generic-domains`).hide();
             }
         });
 }

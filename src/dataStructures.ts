@@ -19,13 +19,13 @@ export interface IDomain extends IBaseDomain {  // maps to antismash.common.json
     readonly abbreviation: string;
 }
 
-export interface IPfamDomain extends IBaseDomain {
+export interface IHmmerDomain extends IBaseDomain {
     readonly name: string;
     readonly description: string;
     readonly accession: string;
-    readonly go_terms: string[];
     readonly evalue: string;
     readonly score: string;
+    readonly go_terms?: string[];
 }
 
 export interface IOrf {
@@ -49,19 +49,19 @@ export interface IModule {
     readonly match_id: string;
 }
 
-export interface IDomainsOrf {
+export interface IDomainOrfBase {
     readonly id: string;
 }
 
-export interface INrpsPksOrf extends IDomainsOrf {
+export interface INrpsPksOrf extends IDomainOrfBase {
     readonly sequence: string;
     readonly domains: IDomain[];
     readonly modules: IModule[];
 }
 
-export interface IPfamsOrf extends IDomainsOrf {
-    readonly pfams: IPfamDomain[];
+export interface IDomainsOrf extends IDomainOrfBase {
     readonly seqLength: number;
+    readonly domains: IHmmerDomain[];
 }
 
 export interface ICluster {
@@ -98,7 +98,6 @@ export interface IRegion {
 export interface IDomainsRegion {
     readonly id: string;
     readonly orfs: INrpsPksOrf[];
-    readonly pfamOrfs: IPfamsOrf[];
 }
 
 export interface IRecord {
