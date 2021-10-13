@@ -52,7 +52,7 @@ function switchToRegion() {
         }
         // draw details domains after the region so locus to id conversion works correctly
         if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(`${anchor}-details-svg`, detailsData.nrpspks[anchor], domainOrfHeight);
+            drawDomains(anchor, detailsData.nrpspks[anchor], domainOrfHeight);
         }
         $(`#${anchor} .clusterblast-selector`).change();
         if (anchor in resultsData) {

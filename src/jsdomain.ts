@@ -189,7 +189,14 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         });
 }
 
-export function drawDomains(id: string, region: IDomainsRegion, height: number): void {
+export function drawDomains(anchor: string, region: IDomainsRegion, height: number): void {
+    // avoid width calculation errors by drawing only when tab is first selected
+    $(`.body-details-header.${anchor}-nrps_pks`).off(".firstClick").one("click.firstClick", () => {
+        actualDrawDomains(`${anchor}-details-svg`, region, height);
+    });
+}
+
+function actualDrawDomains(id: string, region: IDomainsRegion, height: number): void {
     const container = d3select(`#${id}`);
     const singleOrfHeight = height;
     const interOrfPadding = 10;
