@@ -70,6 +70,7 @@ export interface ICluster {
     readonly neighbouring_start: number;
     readonly neighbouring_end: number;
     readonly product: string;
+    readonly category: string;
     readonly height: number;
     readonly tool: string;
     readonly kind: string;

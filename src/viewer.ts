@@ -145,7 +145,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("x", (d) => scale(d.neighbouring_start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
         .attr("opacity", "0.5")
-        .attr("class", (d) => (d.kind === "subregion" ? "cluster-background" : `cluster-background ${d.product}`))
+        .attr("class", (d) => (d.kind === "subregion" ? "cluster-background" : `cluster-background ${d.product} ${d.category}`))
         .style("stroke-width", "0");
     // extent lines
     clusterBars.append("line")
@@ -164,7 +164,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
                                  ? (d.prefix
                                     ? "cluster-core"
                                     : `cluster-core svgene-border-${d.tool}`)
-                                 : `cluster-core ${d.product}`))
+                                 : `cluster-core ${d.product} ${d.category}`))
         .style("stroke", "black");
     // cluster name
     clusterBars.append("text")
