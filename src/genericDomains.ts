@@ -163,8 +163,11 @@ function actualDrawGenericDomains(id: string, tool: ITool, height: number): void
                 }
             }
         }
-        // update the width for scaling and presentation
-        width = factor * maxOrfLength;
+        // update the width for scaling and presentation, but only if *more* space is required
+        const required = factor * maxOrfLength;
+        if (required > width) {
+            width = required;
+        }
         chart.attr("width", width)
           .attr("viewbox", `-1 -1 ${width} ${realHeight}`);
     }
