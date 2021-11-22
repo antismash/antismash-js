@@ -383,7 +383,8 @@ export function actualDrawDomainBubbleData(anchor: string, results: any) {
       .attr("class", "domain-bubble-container");
 
     let currentX = radius;
-    let currentY = baseline;
+    // account for initial domains being modification domains
+    let currentY = baseline + modifierDY * modules[0].domains[0].level;
 
     let geneStart = currentX;
     let moduleNumber = 0;
