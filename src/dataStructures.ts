@@ -94,6 +94,7 @@ export interface IRegion {
     readonly orfs: IOrf[];
     readonly label: string;
     readonly products: string[];
+    readonly product_categories: string[];
 }
 
 export interface IDomainsRegion {

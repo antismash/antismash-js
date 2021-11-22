@@ -57,7 +57,7 @@ function createRecordOverview(record: number, regions: IRegion[], recordLength: 
         .data(regions)
         .enter()
         .append("rect")
-        .attr("class", (data) => "minimap-region " + (data.products.length > 1 ? "hybrid" : data.products[0]))
+        .attr("class", (data) => "minimap-region " + (data.product_categories.length > 1 ? "hybrid" : data.product_categories[0]))
         .attr("y", 15)
         .attr("x", (data) => recordScale(data.start))
         .attr("width", (data) => recordScale(data.end - data.start))
