@@ -109,6 +109,7 @@ export interface IRegion {
     readonly products: string[];
     readonly product_categories: string[];
     readonly cssClass: string;
+    readonly sources?: ISource[];
 }
 
 export interface IDomainsRegion {
@@ -120,4 +121,12 @@ export interface IRecord {
     readonly length: number;
     readonly seq_id: string;
     readonly regions: IRegion[];
+}
+
+export interface ISource {
+    readonly regionStart: number;
+    readonly regionEnd: number;
+    readonly recordStart: number;
+    readonly recordEnd: number;
+    readonly name?: string;
 }

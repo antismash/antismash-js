@@ -25,7 +25,7 @@ import "d3-transition";  // modifies select and selectAll
 
 import {copyToClipboard} from "./clipboard.js";
 import {toggleCollapser, toggleCollapserHandler} from "./collapsers.js";
-import {IBindingSite, ICluster, IOrf, IRegion, ISites, ITTACodon} from "./dataStructures.js";
+import {IBindingSite, ICluster, IOrf, IRegion, ISites, ISource, ITTACodon} from "./dataStructures.js";
 import {replaceWildcards} from "./wildcards.js";
 
 let HEIGHT = 100;
@@ -316,6 +316,40 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
 }
 
 /**
+ * Draws source visualations for inputs with multiple sources
+ *
+ * @param chart - the SVG DOM element
+ * @param sources - the source structures to draw
+ * @param region - the region data
+ * @param height - the height of the source elements
+ * @param width - the width of the source elements
+ * @param y - the Y coordinate to use for ?
+ * @param selectionStart - the start position of the view
+ * @param selectionEnd - the end position of the view
+ */
+function drawSources(chart: any, sources: ISource[], region: IRegion, height: number, width: number, y: number,
+                     selectionStart: number, selectionEnd: number) {
+    const spacers: d3.Selection<SVGGElement, ISource, any, any> = chart.selectAll("rect.svgene-source-marker")
+        .data(sources.slice(0, -1))
+        .enter();
+    spacers.append("rect")
+        .attr("width", (d: ISource, i: number) => scale(sources[i + 1].recordStart) - scale(d.recordEnd))
+        .attr("height", height)
+        .attr("x", (d: ISource) => scale(d.recordEnd))
+        .attr("y", y)
+        .attr("class", "svgene-source-marker");
+
+    const names: d3.Selection<SVGGElement, ISource, any, any> = chart.selectAll("text.svgene-source-name")
+        .data(sources)
+        .enter()
+        .append("text")
+        .text((d: ISource, i: number) => d.name ? d.name : `Section ${i + 1}`)
+        .attr("class", "svgene-source-name")
+        .attr("x", (d: ISource) => scale(region.start + d.regionStart + (d.regionEnd - d.regionStart) / 2))
+        .attr("y", y + height);
+}
+
+/**
  * Draws an entire region, creating an SVG element
  *
  * @param id - the identifier of the SVG's parent container
@@ -356,7 +390,25 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
     const minimapHeight = 40;
     const clusterHeight = Math.max.apply(Math, region.clusters.map((border) => border.height)) * 12;
     const undergeneHeight = (resistancesPresent || region.sites.ttaCodons.length > 0) ? Math.floor(height * 2 / 3) : 0;
-    const realHeight = height + (2 * LABEL_HEIGHT) + clusterHeight + minimapHeight + axisHeight + undergeneHeight;
+    let sourceName: string | null = null;
+    let multipleSourceNames: boolean = false;
+    if (region.sources) {
+        for (const source of region.sources) {
+            if (!source.name) {
+                continue;
+            }
+            if (!sourceName) {
+                sourceName = source.name;
+                continue;
+            }
+            if (sourceName !== source.name) {
+                multipleSourceNames = true;
+                break;
+            }
+        }
+    }
+    const sourceHeight = multipleSourceNames ? 20 : 0;
+    const realHeight = height + (2 * LABEL_HEIGHT) + clusterHeight + minimapHeight + axisHeight + undergeneHeight + sourceHeight;
     const regionIndex: number = region.idx;
 
     const container = d3select(`#${id}`);
@@ -396,8 +448,11 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
     axis = d3axisBottom(scale);
     chart.append<SVGGElement>("g")
         .attr("class", "svgene-axis")
-        .attr("transform", `translate(0,${(realHeight - minimapHeight - axisHeight)})`)
+        .attr("transform", `translate(0,${(realHeight - minimapHeight - axisHeight - sourceHeight)})`)
         .call(axis);
+    if (region.sources) {
+        drawSources(chart, region.sources, region, sourceHeight * 0.8, width, realHeight - minimapHeight - axisHeight);
+    }
 
     createMinimap(chart, region.start, region.end, realHeight - minimapHeight / 2, minimapHeight, allOrfs, width);
     createHandlers();
