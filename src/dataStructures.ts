@@ -95,6 +95,7 @@ export interface IRegion {
     readonly label: string;
     readonly products: string[];
     readonly product_categories: string[];
+    readonly cssClass: string;
 }
 
 export interface IDomainsRegion {
