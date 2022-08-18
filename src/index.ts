@@ -15,7 +15,7 @@ import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawBindingSites} from "./tfbs.js";
-import {drawRegion} from "./viewer.js";
+import {drawRegion, locusToFullId} from "./viewer.js";
 
 export { downloadSvg } from "./downloader.js";
 
@@ -92,6 +92,10 @@ function switchToRegion() {
         $(`#${anchor} .comparison-selector`).change();
         // trigger any required click-event for the default details tab
         $(`#${anchor} * .body-details-header-active`).first().click();
+        // set any ORF label as clickable
+        $(".jsdomain-orflabel").off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
+            $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
+        });
     }, 1);
 }
 
