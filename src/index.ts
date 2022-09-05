@@ -11,6 +11,7 @@ import {drawDomainBubbleData} from "./domainBubbles.js";
 import {initDownloadButtons} from "./downloader.js";
 import {drawGenericDomains, redrawGenericDomains} from "./genericDomains.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
+import {startMibig} from "./mibig.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawRegion, locusToFullId} from "./viewer.js";
@@ -297,4 +298,5 @@ export function start(regions: any, details: any, results: any, records: IRecord
     $(".clipboard-copy").off("click").click(copyToClipboard);
     $(".collapser").click(toggleCollapserHandler);
     initDownloadButtons();
+    startMibig();
 }
