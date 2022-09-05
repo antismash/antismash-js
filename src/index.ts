@@ -12,6 +12,7 @@ import {initDownloadButtons} from "./downloader.js";
 import {drawGenericDomains, redrawGenericDomains} from "./genericDomains.js";
 import {initGeneTableHandler} from "./geneTable.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
+import {startMibig} from "./mibig.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawBindingSites} from "./tfbs.js";
@@ -366,4 +367,5 @@ export function start(regions: any, details: any, results: any, records: IRecord
     $(".clipboard-copy").off("click").click(copyToClipboard);
     $(".collapser").click(toggleCollapserHandler);
     initDownloadButtons();
+    startMibig();
 }

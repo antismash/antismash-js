@@ -1,5 +1,5 @@
 const PACKAGE = require('./package.json');
-const banner = PACKAGE.name + ', version: ' + PACKAGE.version;
+const banner = 'MIBiG-variant antismash.js, version: ' + PACKAGE.version;
 
 const path = require('path');
 const webpack = require('webpack');
