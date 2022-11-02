@@ -709,6 +709,7 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     const resistanceMarkers: d3.Selection<SVGElement, IOrf, any, any> = d3selectAll(".svgene-resistance");
     // because both the data (because of the legend) and the resistance could be undefined
     resistanceMarkers.filter((d: IOrf) => d && d.resistance === true)
+        .transition().duration(duration)
         .attr("x", (d: IOrf) => scale(d.start))
         .attr("width", (d: IOrf) => scale(d.end) - scale(d.start));
     const ttaCodons: d3.Selection<SVGElement, ITTACodon, any, any> = d3selectAll(".svgene-tta-codon");
