@@ -47,7 +47,7 @@ export function selectOrfsByLoci(tags: string[], multiSelect: boolean = false) {
     if (multiSelect) {
         multi_select(selection);
     } else {
-        cdsSelector(selection);
+        cdsSelector(selection, tags.length > 1);
     }
 }
 
@@ -497,15 +497,17 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     cdsSelector($(this));
 }
 
-function cdsSelector(element: JQuery<HTMLElement>): void {
+function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = false): void {
     if (!displayedRegion) {
         return;
     }
     const node: d3.Selection<any, IOrf, any, any> = d3selectAll(element.toArray());
     const data: IOrf = node.datum();
-    const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
-    panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
-    $(".clipboard-copy", panelContent).off("click").click(copyToClipboard);
+    if (!skipFocusPanel) {
+        const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
+        panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
+        $(".clipboard-copy", panelContent).off("click").click(copyToClipboard);
+    }
     if (node.classed(SELECTED_ORF_CLASS) && $(`.svgene-orf.${SELECTED_ORF_CLASS}`).length === 1) {
         selectOrfs();
     } else {
