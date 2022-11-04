@@ -490,6 +490,14 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
     toggleCDSCollapserMatchingElement(geneElement, "cds");
 }
 
+export function locusSelectionHandler(this: HTMLElement, event: JQuery.Event): void {
+    const locus = this.getAttribute("data-locus");
+    if (!locus) {
+        return;
+    }
+    selectOrfsByLoci([locus], event.ctrlKey || event.metaKey);
+}
+
 function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     // if a legend button is active, remove that
     $(".legend-selected").removeClass("legend-selected");
