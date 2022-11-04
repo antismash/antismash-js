@@ -665,7 +665,7 @@ function zoom_to_selection(event: JQuery.Event) {
     if (start === -1 || end === -1) {
         return;
     }
-    change_view(start, end);
+    change_view(Math.max(displayedRegion.start, start - 3000), Math.min(end + 3000, displayedRegion.end));
 }
 
 function change_view(start: number, end: number, changedByMinimap?: boolean) {
