@@ -58,6 +58,11 @@ export function locusToFullId(locusTag: string): string {
     return `u${uniqueID - 1}-region${displayedRegion.idx}-${tag_to_id(locusTag)}`;
 }
 
+function fullIdToLocus(identifier: string): string {
+    // IDs are in the form "u<some number>-region<some number>-<locus>-svgeneorf"
+    return identifier.split(/-/)[2];
+}
+
 export function clearSelectedOrfs() {
     selectOrfs();
 }
@@ -479,6 +484,7 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
         // if it was the last one, reselect everything
         if ($(`.${SELECTED_ORF_CLASS}`).length === 0) {
             selectOrfs();
+            removeExternalSelectedIndicators();
         }
     } else {
         // if it's the first, deselect everything else first
@@ -597,6 +603,12 @@ function select_by_range(start: number, end: number): void {
 function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
     const opacity = selected ? "1" : "0.5";
     const d3orfs: d3.Selection<any, IOrf, any, any> = d3selectAll(orfs.toArray());
+    // orfs here includes the minimap ORFs, so halve the number
+    const allSelected = displayedRegion && orfs.length / 2 === displayedRegion.orfs.length;
+    if (allSelected) {
+        removeExternalSelectedIndicators();
+    }
+
     d3orfs.attr("opacity", opacity)
         .classed(SELECTED_ORF_CLASS, selected)
         .each((data: IOrf) => {
@@ -612,7 +624,29 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
                 $(`#${prefix}-domains`).hide();
                 $(`.${prefix}-generic-domains`).hide();
             }
+            if (!allSelected) {
+                changeExternalSelectedIndicator(data.locus_tag, selected);
+            }
         });
+}
+
+function changeExternalSelectedIndicator(identifier: string, show: boolean, fromId: boolean = false) {
+    if (!identifier) {
+        return;
+    }
+    if (fromId) {
+        identifier = fullIdToLocus(identifier);
+    }
+    if (show) {
+        $(`.cds-selected-marker-${identifier}`).addClass("active");
+    } else {
+        $(`.cds-selected-marker-${identifier}`).removeClass("active");
+    }
+}
+
+function removeExternalSelectedIndicators() {
+    /* hides all selected CDS markers that may exist */
+     $(".cds-selected-marker").removeClass("active");
 }
 
 function selectOrfs(orfs?: JQuery<HTMLElement>) {
