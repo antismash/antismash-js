@@ -33,7 +33,7 @@ const VERSION: string = "0.0.1";
 
 const SELECTED_ORF_CLASS = "svgene-selected-orf";
 
-export function selectOrfsByLoci(tags: string[], multiSelect?: boolean) {
+export function selectOrfsByLoci(tags: string[], multiSelect: boolean = false) {
     if (!displayedRegion) {
         return;
     }
