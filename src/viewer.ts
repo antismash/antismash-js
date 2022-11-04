@@ -645,7 +645,10 @@ function legend_selector(this: HTMLElement, event: JQuery.Event) {
     selectOrfs($(target));
 }
 
-function zoom_to_selection(event: JQuery.Event) {
+export function zoom_to_selection(event?: JQuery.Event) {
+    if (!displayedRegion) {
+        return;
+    }
     let start = -1;
     let end = -1;
     $(`.${SELECTED_ORF_CLASS}`).each(function(index) {
@@ -742,7 +745,7 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     }
 }
 
-function reset_zoom(this: void, event: JQuery.Event) {
+export function reset_zoom(this: void, event?: JQuery.Event) {
     if (displayedRegion === null) {
         return;
     }
