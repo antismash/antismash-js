@@ -58,6 +58,10 @@ export function locusToFullId(locusTag: string): string {
     return `u${uniqueID - 1}-region${displayedRegion.idx}-${tag_to_id(locusTag)}`;
 }
 
+export function clearSelectedOrfs() {
+    selectOrfs();
+}
+
 function geneArrowPoints(orf: IOrf): string {
     const upper: number = orfY + LABEL_HEIGHT + verticalOffset;
     const lower: number = orfY + LABEL_HEIGHT + HEIGHT - verticalOffset;
