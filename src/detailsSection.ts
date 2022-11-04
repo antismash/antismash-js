@@ -2,20 +2,20 @@
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
 export function setupDetails(regionLabels: string[]) {
-    $(".body-details-header").off("click");
-    $(".body-details-section").hide();
-    for (const regionLabel of regionLabels) {
-        $(`#${regionLabel} * .body-details-header`)
-            .click($.proxy(bodyHandler, null, regionLabel))
-            .first()
-                .trigger("click");
-    }
-
     $(".sidepanel-details-header").off("click");
     $(".sidepanel-details-section").hide();
     for (const regionLabel of regionLabels) {
         $(`#${regionLabel} * .sidepanel-details-header`)
             .click($.proxy(sidepanelHandler, null, regionLabel))
+            .first()
+                .trigger("click");
+    }
+
+    $(".body-details-header").off("click");
+    $(".body-details-section").hide();
+    for (const regionLabel of regionLabels) {
+        $(`#${regionLabel} * .body-details-header`)
+            .click($.proxy(bodyHandler, null, regionLabel))
             .first()
                 .trigger("click");
     }
