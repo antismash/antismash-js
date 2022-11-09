@@ -554,13 +554,13 @@ function createHandlers(): void {
     $(".svgene-textarea").click((event: JQuery.Event) => event.stopPropagation());
     $(".legend-selector").unbind("click").click(legend_selector);
     $(".zoom-in").unbind("click").click(zoom_to_selection);
-    $(".zoom-reset").unbind("click").click(reset_zoom);
+    $(".zoom-reset").unbind("click").click(() => resetView());
     if (uniqueID === 1) {
         $(document).keyup(
             (event: JQuery.Event) => {
                 const key = event.keyCode;
                 if (key === 82) {  // r
-                    reset_zoom(event);
+                    resetView();
                 } else if (key === 90) {  // z
                     zoom_to_selection(event);
                 }
@@ -793,7 +793,10 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     }
 }
 
-export function reset_zoom(this: void, event?: JQuery.Event) {
+/**
+ * Resets the entire region view to the default state
+ */
+export function resetView() {
     if (displayedRegion === null) {
         return;
     }
@@ -801,6 +804,16 @@ export function reset_zoom(this: void, event?: JQuery.Event) {
     selectOrfs();
     change_view(displayedRegion.start, displayedRegion.end);
     hideCDSLevelCollapsers();
+}
+
+/**
+ * Resets the viewer pan/zoom level without changing any other state
+ */
+export function resetZoom() {
+    if (displayedRegion === null) {
+        return;
+    }
+    change_view(displayedRegion.start, displayedRegion.end);
 }
 
 let axis: d3.Axis<any> | null = null;
