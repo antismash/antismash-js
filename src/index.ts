@@ -10,6 +10,7 @@ import {setupDetails} from "./detailsSection.js";
 import {drawDomainBubbleData} from "./domainBubbles.js";
 import {initDownloadButtons} from "./downloader.js";
 import {drawGenericDomains, redrawGenericDomains} from "./genericDomains.js";
+import {initGeneTableHandler} from "./geneTable.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
@@ -64,6 +65,9 @@ function switchToRegion() {
             }
             if (`${visualiserRoot}.generic_domains` in resultsData[anchor]) {
                 drawGenericDomains(anchor, resultsData[anchor][`${visualiserRoot}.generic_domains`], domainOrfHeight);
+            }
+            if (`${visualiserRoot}.gene_table` in resultsData[anchor]) {
+                initGeneTableHandler(allRegions[anchor], resultsData[anchor][`${visualiserRoot}.gene_table`]);
             }
         }
         $(`#${anchor} .comparison-selector`).change();
