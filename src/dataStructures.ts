@@ -35,6 +35,7 @@ export interface IOrf {
     readonly type: string;
     readonly description: string;
     readonly locus_tag: string;
+    readonly product: string;
     readonly translation: string;
     readonly dna: string;
     readonly resistance?: boolean;
