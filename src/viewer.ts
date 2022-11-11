@@ -26,6 +26,7 @@ import "d3-transition";  // modifies select and selectAll
 import {copyToClipboard} from "./clipboard.js";
 import {toggleCollapser, toggleCollapserHandler} from "./collapsers.js";
 import {ICluster, IOrf, IRegion, ITTACodon} from "./dataStructures.js";
+import {replaceWildcards} from "./wildcards.js";
 
 let HEIGHT = 100;
 const LABEL_HEIGHT = 14;
@@ -524,6 +525,7 @@ function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = fal
     if (!skipFocusPanel) {
         const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
         panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
+        replaceWildcards(panelContent[0], displayedRegion);
         $(".clipboard-copy", panelContent).off("click").click(copyToClipboard);
     }
     if (node.classed(SELECTED_ORF_CLASS) && $(`.svgene-orf.${SELECTED_ORF_CLASS}`).length === 1) {
