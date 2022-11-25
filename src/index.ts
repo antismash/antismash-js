@@ -14,6 +14,7 @@ import {initGeneTableHandler} from "./geneTable.js";
 import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
+import {drawBindingSites} from "./tfbs.js";
 import {drawRegion} from "./viewer.js";
 
 export { downloadSvg } from "./downloader.js";
@@ -69,6 +70,9 @@ function switchToRegion() {
             }
             if (`${visualiserRoot}.gene_table` in resultsData[anchor]) {
                 initGeneTableHandler(allRegions[anchor], resultsData[anchor][`${visualiserRoot}.gene_table`]);
+            }
+            if ("antismash.modules.tfbs_finder" in resultsData[anchor]) {
+                drawBindingSites(anchor, resultsData[anchor]["antismash.modules.tfbs_finder"]);
             }
         }
         $(`#${anchor} .comparison-selector`).change();
