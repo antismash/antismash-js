@@ -9,6 +9,7 @@ import {arc as d3arc} from "d3-shape";
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
 import {IDomain, IDomainsRegion, IModule, INrpsPksOrf} from "./dataStructures.js";
 import {locusToFullId} from "./viewer.js";
+import {replaceWildcardsInText} from "./wildcards.js";
 
 let activeTooltip: JQuery<HTMLElement> | null;
 
@@ -288,6 +289,7 @@ function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
         html += `Nucleotide sequence: ${clipboardCopyConstruct(domain.dna_sequence)}<br>`;
     }
 
+    html = replaceWildcardsInText(html, domain);
     return html;
 }
 
