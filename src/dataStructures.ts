@@ -87,12 +87,22 @@ export interface ITTACodon {
     readonly containedBy: string[];
 }
 
+export interface IBindingSite {
+    readonly loc: number;
+    readonly len: number;
+}
+
+export interface ISites {
+    readonly ttaCodons: ITTACodon[];
+    readonly bindingSites: IBindingSite[];
+}
+
 export interface IRegion {
     readonly anchor: string;
     readonly start: number;
     readonly end: number;
     readonly idx: number;
-    readonly ttaCodons: ITTACodon[];
+    readonly sites: ISites;
     readonly clusters: ICluster[];
     readonly orfs: IOrf[];
     readonly label: string;
