@@ -41,6 +41,7 @@ function switchToRegion() {
     const domainOrfHeight = 25;
     setTimeout(() => {
         $(".page").hide();
+        $(".empty-on-leave").empty();
         $(".regbutton").removeClass("active");
         const anchor = getAnchor();
         $(`#${anchor}`).show();
