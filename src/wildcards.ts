@@ -13,15 +13,14 @@ const WILDCARD_PATTERN = /@![^!]*!@/g;
  *
  * @remarks
  * All replacement targets must use the {@link WILDCARD_PATTERN | expected pattern}
- * to mark substitution targets, and all targets must be contained by {@link IOrf}.
+ * to mark substitution targets, and all targets must be contained by the data object.
  *
  * @param text - the text to fill in
- * @param orf - the ORF data to use in replacements
+ * @param orf - the data to use in replacements
  */
-
-export function replaceWildcardsInText(text: string, orf: IOrf) {
+export function replaceWildcardsInText<Type>(text: string, data: Type) {
     for (const hit of text.match(WILDCARD_PATTERN) || []) {
-        const value: string = (orf[hit.substring(2, hit.length - 2) as (keyof IOrf)] || "").toString();
+        const value: string = `${data[hit.substring(2, hit.length - 2) as (keyof Type)] || ""}`;
         text = text.replace(hit, value);
     }
     return text;
