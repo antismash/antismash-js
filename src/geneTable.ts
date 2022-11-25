@@ -163,6 +163,10 @@ function setupZoomHandler(localToggle: JQuery<HTMLElement>, allToggles: JQuery<H
  */
 function fillTable(tableSelector: string, region: IRegion, data: any) {
     const body = $(`${tableSelector} tbody`);
+    // if it's already got children, stop
+    if ($(body).children().length > 0) {
+        return;
+    }
     let rowNumber = 1;
     for (const orf of region.orfs.sort((a, b) => a.start - b.start)) {
         const blastLink = replaceWildcardsInText(data.blast_template, orf);
