@@ -30,10 +30,15 @@ interface IModule {
     readonly polymer: string;
     readonly complete: boolean;
     readonly iterative: boolean;
+    readonly nonElongating?: boolean;
     completeNumber: number; // the (1-)index of this module when only complete modules are counted
     number: number; // the (1-)index of this module when all modules are counted
     start: number; // SVG X coordinate start position of the module line
     end: number; // SVG X coordinate end position of the module line
+}
+
+interface ILegendOptions {
+    showNonElongating?: boolean;
 }
 
 /* misc dimensions for the purposes of drawing */
@@ -94,7 +99,7 @@ function drawTerminalDocking(group: any, domain: any) {
     return group;
 }
 
-function drawLegend(anchor: string): void {
+function drawLegend(anchor: string, options: ILegendOptions): void {
     const id = "bubble-legend";
     // if it already exists, just move it to the current region
     if ($(`#${id}`).length) {
@@ -213,6 +218,29 @@ function drawLegend(anchor: string): void {
       .attr("class", "bubble-legend-text")
       .text("The extent of a module, with the module number and the predicted monomer for that module");
 
+    if (options.showNonElongating) {
+        const nonElongating = legend.append("div").attr("class", "bubble-legend-icon bubble-legend-non-elongating").append("svg")
+          .attr("width", radius * 3)
+          .attr("height", iconHeight)
+          .append("g").attr("class", "bubble-module-label");
+        nonElongating.append("line")
+          .attr("x1", 2)
+          .attr("x2", radius * 3 - 2)
+          .attr("y1", 4)
+          .attr("y2", 4)
+          .attr("class", "bubble-module-line-non-elongating");
+        nonElongating.append("text")
+          .attr("x", radius * 1.75)
+          .attr("y", radius * 1.75)
+          .attr("class", "bubble-module-text")
+          .attr("text-anchor", "middle")
+          .text(`M #`);
+
+        legend.append("div")
+          .attr("class", "bubble-legend-text bubble-legend-non-elongating")
+          .text("The extent of a module predicted to be non-elongating, though modification domains may still apply");
+    }
+
     // interative module lines
     const iterativeLabel = legend.append("div").attr("class", "bubble-legend-icon").append("svg")
       .attr("width", radius * 6)
@@ -252,8 +280,11 @@ export function drawDomainBubbleData(anchor: string, results: any): void {
             return;
         }
         if (candidate && regionCandidates[candidate]) {
+            const options: ILegendOptions = {};
             actualDrawDomainBubbleData(anchor, regionCandidates[candidate]);
-            drawLegend(anchor);
+            // since non-elongating modules aren't present for many types, hide them unless one is present
+            options.showNonElongating = regionCandidates[candidate].modules.some((module: IModule) => module.nonElongating);
+            drawLegend(anchor, options);
         }
     });
 
@@ -326,7 +357,7 @@ function drawModuleLine(group: any, module: IModule, y: number) {
           .attr("x2", module.end)
           .attr("y1", y)
           .attr("y2", y)
-          .attr("class", "bubble-module-line");
+          .attr("class", `bubble-module-line${module.nonElongating ? "-non-elongating" : ""}`);
         return group;
     }
     const lower = y + radius * 2.5;
