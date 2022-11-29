@@ -26,7 +26,7 @@ function bodyHandler(this: HTMLElement, regionLabel: string, event: JQuery.Event
 
     const matchingSidepanel = $(`#${regionLabel} * .sidepanel-details-header.${$(this).attr("data-name")}`);
     if (matchingSidepanel.length > 0) {
-        swapSidepanel(matchingSidepanel, regionLabel);
+        swapSidepanel(matchingSidepanel, regionLabel);  // important not to click, to avoid recursion
     }
 }
 
@@ -39,11 +39,8 @@ function swapBody(target: JQuery<HTMLElement>, regionLabel: string): void {
 
 function sidepanelHandler(this: HTMLElement, regionLabel: string, event: JQuery.Event): void {
     swapSidepanel($(this), regionLabel);
-
     const matchingBody = $(`#${regionLabel} * .body-details-header.${$(this).attr("data-name")}`);
-    if (matchingBody.length > 0) {
-        swapBody(matchingBody, regionLabel);
-    }
+    matchingBody.click();  // important to click, since body details tend to have draw handlers
 }
 
 function swapSidepanel(target: JQuery<HTMLElement>, regionLabel: string): void {
