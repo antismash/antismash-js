@@ -278,7 +278,7 @@ function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
     }
     html += `<a href="${domain.blastlink}" target="_blank">Run BlastP on this domain</a><br>`;
     if (domain.predictions.length > 0) {
-        html += "<dl><dt>Substrate predictions:</dt>";
+        html += "<dl><dt>Predictions:</dt>";
         for (const prediction of domain.predictions) {
             html += `<dd>-${prediction[0]}: ${prediction[1]}</dd>`;
         }
