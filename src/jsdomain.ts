@@ -268,6 +268,14 @@ function actualDrawDomains(id: string, region: IDomainsRegion, height: number): 
     });
     d3selectAll("g.domain-group").data(region.orfs);
     init();
+
+    // since the singles have just been created, sync them up with currently selected ORFs
+    $(".jsdomain-svg-single").hide();
+    $(".svgene-selected-orf").each(function() {
+        const singleID = ($(this).attr("id") || "invalid-id").replace("-svgeneorf", "-domains");
+        $(`#${singleID}`).show();
+    });
+
     redrawDomains();
 }
 
