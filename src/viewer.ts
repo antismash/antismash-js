@@ -764,7 +764,7 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     orfs.transition().duration(duration)
         .attr("points", (d) => geneArrowPoints(d));
 
-    const orfLabels: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-locustag");
+    const orfLabels: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-locustag *");
     orfLabels.transition().duration(duration)
         .attr("x", (d: IOrf) => d.start < midpoint ? scale(d.start) : scale(d.end))
         .attr("text-anchor", (d: IOrf) => d.start < midpoint ? "start" : "end");
