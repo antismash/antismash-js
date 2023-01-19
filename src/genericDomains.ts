@@ -8,7 +8,7 @@ import {arc as d3arc} from "d3-shape";
 
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
 import {IDomainsOrf, IDomainsRegion, IHmmerDomain, IModule} from "./dataStructures.js";
-import {locusToFullId} from "./viewer.js";
+import {locusToFullId, zoom_to_selection} from "./viewer.js";
 
 interface ITool {
     name: string;
@@ -215,6 +215,7 @@ function actualDrawGenericDomains(id: string, tool: ITool, height: number): void
     // label as selector as per viewer
     $(`.${DOMAIN_CLASS}-orflabel`).off("click").click(function(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
         $(`#${locusToFullId($(this).attr("data-locus") || "none")}-svgeneorf`).trigger(event);
+        zoom_to_selection();
     });
     d3selectAll("g.domain-group").data(tool.data);
     init();
