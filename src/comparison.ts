@@ -64,21 +64,22 @@ function drawSVG(chart: any, svgID: string, reference: string, referenceData: an
     const orfHeight = 10;
     const width = region.end - region.start;
     const regionNumber = region.idx;
+    const imageWidth = 800;
     const scale = d3scaleLinear()
         .domain([region.start, region.end])
-        .range([0, 800]);
+        .range([0, imageWidth]);
     let refScale = d3scaleLinear()
         .domain([referenceData.start, referenceData.end])
-        .range([0, 800]);
+        .range([0, imageWidth]);
     if (referenceData.reverse) {
         refScale = d3scaleLinear()
             .domain([referenceData.end, referenceData.start])
-            .range([0, 800]);
+            .range([0, imageWidth]);
     }
 
     chart.attr("viewport", `0 ${height + labelHeight} 0 ${width}`)
         .attr("height", height + labelHeight)
-        .attr("width", 800);
+        .attr("width", imageWidth);
 
     chart.append("text")
         .attr("x", 0)
@@ -139,8 +140,8 @@ function drawSVG(chart: any, svgID: string, reference: string, referenceData: an
         .data(region.orfs)
         .enter().append("text")
         // to prevent truncating locus tags, right-align labels after the midpoint
-        .attr("x", (d: IOrf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
-        .attr("text-anchor", (d: IOrf) => scale(d.start) < width / 2 ? "start" : "end")
+        .attr("x", (d: IOrf) => scale(d.start) < imageWidth / 2 ? scale(d.start) : scale(d.end))
+        .attr("text-anchor", (d: IOrf) => scale(d.start) < imageWidth / 2 ? "start" : "end")
         .attr("y", topOrfY - labelHeight)
         .attr("class", "cc-svg-locustag")
         .attr("id", (d: IOrf) => `${svgID}-${tag_to_id(d.locus_tag)}-tag`)
@@ -168,8 +169,8 @@ function drawSVG(chart: any, svgID: string, reference: string, referenceData: an
         .data(referenceData.genes)
         .enter().append("text")
         // to prevent truncating locus tags, right-align labels after the midpoint
-        .attr("x", (d: IOrf) => refScale(d.start) < width / 2 ? refScale(d.start) : refScale(d.end))
-        .attr("text-anchor", (d: IOrf) => refScale(d.end) < width / 2 ? "start" : "end")
+        .attr("x", (d: IOrf) => refScale(d.start) < imageWidth / 2 ? refScale(d.start) : refScale(d.end))
+        .attr("text-anchor", (d: IOrf) => refScale(d.start) < imageWidth / 2 ? "start" : "end")
         .attr("y", bottomOrfY + labelHeight)
         .attr("class", "cc-svg-locustag")
         .attr("id", (d: IOrf) => `${svgID}-ref${tag_to_id(d.locus_tag)}-tag`)
