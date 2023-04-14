@@ -18,9 +18,9 @@
     "jquery": "^3.4.1",
     "ts-loader": "^5.3.0",
     "tslint": "^5.20.1",
-    "typescript": "^3.9.7",
-    "webpack": "^4.44.2",
-    "webpack-cli": "^3.1.2"
+    "typescript": "^5.0.4",
+    "webpack": "^5.79.0",
+    "webpack-cli": "^5.0.1"
   },
   "dependencies": {
     "d3-axis": "^1.0.12",
