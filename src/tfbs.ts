@@ -9,6 +9,7 @@ interface IGene {
     readonly name: string;
     readonly strand: number;
     readonly location: number;
+    readonly length?: number; // only present for fully contained genes
 }
 
 interface IHit {
@@ -277,6 +278,39 @@ export function drawBindingSites(anchor: string, results: any) {
                 drawGene(svg, hit.left, x, hit.left.strand === -1, width, "end",
                          contextStart - geneDX - geneWidth * .1);
                 drawSpacer(contextStart, -1, distance);
+            }
+            if (hit.mid) {
+                // don't use the same gene drawing function as the others,
+                // since they're completely different location, etc
+                const midStart = seqStart + (hit.mid.location - hit.start) * charSize;
+                const midEnd = midStart + hit.mid.length * charSize;
+                const tipSize = (midEnd - midStart) * 0.05;
+                let path = "";
+                if (hit.mid.strand !== -1) {
+                    // gene pointing to the right, anticlockwise from bottom left
+                    path = `M ${midStart},${geneBottom}
+                            L ${midEnd - tipSize},${geneBottom}
+                            L ${midEnd},${genePoint}
+                            L ${midEnd - tipSize},${geneTop}
+                            L ${midStart},${geneTop}
+                            Z`;  // close the path, unlike the other genes
+                } else {
+                    // gene pointing to the left, clockwise from bottom right
+                    path = `M ${midEnd},${geneBottom}
+                            L ${midStart + tipSize},${geneBottom}
+                            L ${midStart},${genePoint}
+                            L ${midStart + tipSize},${geneTop}
+                            L ${midEnd},${geneTop}
+                            Z`;  // again, close the path, unlike the other genes
+                }
+                const group = svg.append("g")
+                    .attr("class", "tfbs-gene");
+
+                group.append("path")
+                    .attr("class", "tfbs-line")
+                    .attr("d", path)
+                    .attr("fill", "none");
+                // and don't add the name, since it would overlap with the sequence
             }
             if (hit.right) {
                 const x = contextEnd + geneWidth + geneDX;
