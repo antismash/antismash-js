@@ -84,7 +84,7 @@ function fixupSvg(svg: SVGElement): void {
     document.body.removeChild(svg);
 }
 
-function setStyle(element: Element, emptySVGStyle: CSSStyleDeclaration): void {
+function setStyle(element: Element, emptySVGStyle: Map<string, any>): void {
     const computedStyle = getComputedStyle(element);
     let styleString = "";
     for (let i = 0, len = computedStyle.length; i < len; i++) {
@@ -97,7 +97,7 @@ function setStyle(element: Element, emptySVGStyle: CSSStyleDeclaration): void {
         }
 
         // Only set non-default styles
-        if (value !== emptySVGStyle.getPropertyValue(key)) {
+        if (value !== emptySVGStyle.get(key)) {
             styleString += `${key}:${value};`;
         }
     }
@@ -129,7 +129,13 @@ function initTree(element: Element): Element[] {
 function styleSvg(element: SVGElement): void {
     const emptySVG = document.createElementNS(PREFIX.svg, "svg");
     document.body.appendChild(emptySVG);
-    const emptySVGStyle = getComputedStyle(emptySVG);
+    // the object from "getComputedStyle" clears after the element is removed
+    // from the document, so a copy needs to be made
+    const emptySVGStyle = new Map<string, any>();
+    const temporaryStyle = getComputedStyle(emptySVG);
+    Object.values(temporaryStyle).forEach((key) => {
+        emptySVGStyle.set(key, temporaryStyle.getPropertyValue(key));
+    });
     document.body.removeChild(emptySVG);
 
     const allElements = initTree(element);
