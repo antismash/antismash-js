@@ -143,4 +143,17 @@ function styleSvg(element: SVGElement): void {
     while (i--) {
         setStyle(allElements[i], emptySVGStyle);
     }
+    // respect the zoom, if present, by correcting any width that's present (e.g. "100%")
+    // start with the attributes
+    element.removeAttribute("width");
+    element.removeAttribute("height");
+    // then CSS properties that dictate size
+    element.style.removeProperty("width");
+    element.style.removeProperty("height");
+    element.style.removeProperty("inline-size");
+    // then grab the viewbox, if it exists, and change any ...
+    const viewBox = element.getAttribute("viewbox");
+    if (viewBox && viewBox.split(" ").length > 3) {  // ensures it exists and is properly formatted
+        element.setAttribute("width", viewBox.split(" ")[2]);
+    }
 }
