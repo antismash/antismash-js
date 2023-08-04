@@ -91,6 +91,11 @@ function setStyle(element: Element, emptySVGStyle: CSSStyleDeclaration): void {
         const key = computedStyle[i];
         const value = computedStyle.getPropertyValue(key);
 
+        // ignore all interaction cues, since this is now non-interactive
+        if (key === "cursor") {
+            continue;
+        }
+
         // Only set non-default styles
         if (value !== emptySVGStyle.getPropertyValue(key)) {
             styleString += `${key}:${value};`;
