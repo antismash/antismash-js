@@ -106,6 +106,7 @@ function switchToRegion() {
  * If the current view is of the overview, the first possible region will be shown.
  */
 function nextRegion() {
+    return;  // MIBiG has no other regions
     const regions = allRegions.order;
     const current = getAnchor();
     let next = "overview";
@@ -127,6 +128,7 @@ function nextRegion() {
  * If the current view is of the overview, the last possible region will be shown.
  */
 function previousRegion() {
+    return;  // MIBiG has no other regions
     const regions = allRegions.order;
     const current = getAnchor();
     let prev = "";
