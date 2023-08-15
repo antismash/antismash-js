@@ -78,6 +78,7 @@ function switchToRegion() {
 }
 
 function nextRegion() {
+    return;  // MIBiG has no other regions
     const regions = allRegions.order;
     const current = getAnchor();
     let next = "overview";
@@ -94,6 +95,7 @@ function nextRegion() {
 }
 
 function previousRegion() {
+    return;  // MIBiG has no other regions
     const regions = allRegions.order;
     const current = getAnchor();
     let prev = "";
