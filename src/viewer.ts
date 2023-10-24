@@ -631,6 +631,35 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
 }
 
 /**
+ * An event callback function bound to ORF descriptions, linking to the antiSMASH database.
+ * This allows for BLAST functionality on that dataset, submitting the job via
+ * via the database's API and then opening a new window/tab to the job results.
+ *
+ * @param event - the event that triggered the handler
+ */
+async function asdb(this: HTMLElement, event: JQuery.Event) {
+    const submissionUrl = "https://antismash-db.secondarymetabolites.org/api/jobs/clusterblast";
+    const resultsUrl = "https://antismash-db.secondarymetabolites.org/job/";  // followed by job ID
+    try {
+        const response = await fetch(submissionUrl, {
+            body: JSON.stringify({
+                name: $(this).attr("data-locus"),
+                sequence: $(this).attr("data-seq"),
+            }),
+            headers: {
+              "Content-Type": "application/json",
+            },
+            method: "POST",
+            mode: "cors",
+        });
+        const link = await response.json();
+        window.open(resultsUrl + link.id, "_blank");
+    } catch (error) {
+        alert("The antiSMASH database is not currently accessible: " + error);
+    }
+}
+
+/**
  * Toggles the ORF selection state, updating any information in other elements connected to the ORF
  *
  * @param element - the ORF element
@@ -647,6 +676,7 @@ function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = fal
         panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
         replaceWildcards(panelContent[0], displayedRegion);
         $(".clipboard-copy", panelContent).off("click").click(copyToClipboard);
+        $(".asdb-linkout", panelContent).off("click").click(asdb);
     }
     if (node.classed(SELECTED_ORF_CLASS) && $(`.svgene-orf.${SELECTED_ORF_CLASS}`).length === 1) {
         selectOrfs();
