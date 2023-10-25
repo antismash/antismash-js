@@ -220,13 +220,22 @@ export function initGeneTableHandler(region: IRegion, data: any): void {
         if (!watchMutations || scrollContainer.length === 0) {
             return;
         }
-        const row = table.find(".cds-selected-marker.active").first().closest("tr")[0];
-        if (!row) {
+        const row = $(table.find(".cds-selected-marker.active").first().closest("tr"));
+        if (!row.length) {
             return;
         }
-        row.scrollIntoView({
-            behavior: "smooth",
-        });
+        // before getting the positions of a row, reset the position to the top to make the calculations easier
+        scrollContainer.scrollTop(0);
+        // then get the absolute positions within the container
+        const rowPosition = row.position();
+        const headerPosition = tableHeader.position();
+        const headerHeight = tableHeader.height();
+        // if everything exists, then scroll to the position that shows the selected row
+        // at the top of the table, or as high as it can be for those rows at the bottom
+        if (rowPosition && headerPosition && headerHeight) {
+            // animate the scroll slightly to make it more obvious
+            scrollContainer.animate({scrollTop: rowPosition.top - headerPosition.top - headerHeight}, "250");
+        }
     });
     table.find(".cds-selected-marker").each(function() {
         mutationObserver.observe(this, {
