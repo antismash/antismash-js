@@ -25,11 +25,22 @@ let allRegions: any = null;
 let detailsData: any = null;
 let resultsData: any = null;
 
+/**
+ * An event handler for toggling the visibility of the Download menu in the header.
+ *
+ * @param event - the event that triggered the handler
+ */
 function toggle_downloadmenu(event: JQuery.Event) {
     event.preventDefault();
     $("#downloadmenu").fadeToggle("fast", "linear");
 }
 
+/**
+ * Finds the anchor string (e.g. "r1c1" or "overview") for the currently displayed
+ * section.
+ *
+ * @returns The anchor string of the currently displayed section.
+ */
 export function getAnchor(): string {
     const anchor = window.location.hash.substring(1);
     if (anchor) {
@@ -38,6 +49,9 @@ export function getAnchor(): string {
     return "overview";
 }
 
+/**
+ * Updates all handlers and sets up all relevant visualisations for the current region.
+ */
 function switchToRegion() {
     const domainOrfHeight = 25;
     setTimeout(() => {
@@ -81,6 +95,11 @@ function switchToRegion() {
     }, 1);
 }
 
+/**
+ * Changes the region view to the next region in line.
+ * If no region follows the current region, the overview will be shown.
+ * If the current view is of the overview, the first possible region will be shown.
+ */
 function nextRegion() {
     const regions = allRegions.order;
     const current = getAnchor();
@@ -97,6 +116,11 @@ function nextRegion() {
     switchToRegion();
 }
 
+/**
+ * Changes the region view to the previous region in line.
+ * If no region precedes the current region, the overview will be shown.
+ * If the current view is of the overview, the last possible region will be shown.
+ */
 function previousRegion() {
     const regions = allRegions.order;
     const current = getAnchor();
@@ -113,6 +137,12 @@ function previousRegion() {
     switchToRegion();
 }
 
+/**
+ * Cycles through the body details panel in a region to the next or previous tab.
+ *
+ * @param className - the class of the currently active element
+ * @param direction - the direction of the next tab (positive is right, others are left)
+ */
 function changeElementInRegion(className: string, direction: number) {
     const activeClassName = className + "-active";
     const currentRegion = getAnchor();
@@ -139,6 +169,9 @@ function changeElementInRegion(className: string, direction: number) {
     }
 }
 
+/**
+ * Adds all event handlrs required for the overview section of the page.
+ */
 function createOverviewHandlers() {
     $("input.overview-switch-compact")
         .change(function() {
@@ -159,6 +192,11 @@ function createOverviewHandlers() {
     });
 }
 
+/**
+ * An event handler for keyboard hotkeys.
+ *
+ * @param event - the keyboard event triggering the handler
+ */
 function keyUpEvent(event: KeyboardEvent) {
     const key = event.keyCode;
     if (key === 37 || key === 87) {  // left arrow or w
@@ -183,6 +221,11 @@ function keyUpEvent(event: KeyboardEvent) {
     }
 }
 
+/**
+ * An event handler that toggles the visibility of the element containing cluster rule details.
+ *
+ * @param ev - the triggering event
+ */
 function toggle_cluster_rules(this: JQuery<HTMLElement>, ev: JQuery.Event) {
     ev.preventDefault();
     const id = ($(this).attr("id") || "").replace(/-header/, "");
@@ -198,6 +241,12 @@ function toggle_cluster_rules(this: JQuery<HTMLElement>, ev: JQuery.Event) {
     rules.fadeToggle("fast", "linear");
 }
 
+/**
+ * Maps some raw product types to a more readable name.
+ *
+ * @param type - the product type to convert
+ * @returns The more descriptive version, if available, otherwise the same value as the input.
+ */
 function map_type_to_desc(type: string): string {
     switch (type) {
         case "nrps": return "NRPS";
@@ -209,6 +258,9 @@ function map_type_to_desc(type: string): string {
     }
 }
 
+/**
+ * Adds handlers to show help tooltips for relevant elements
+ */
 function addHelpTooltipHandlers() {
     $(".help-icon").off("click").click(function(this: HTMLElement) {
         $(this).toggleClass("active");
@@ -220,6 +272,14 @@ function addHelpTooltipHandlers() {
     });
 }
 
+/**
+ * The entry point for all antiSMASH visualisation.
+ *
+ * @param regions - the data describing all regions within the output
+ * @param details - the data describing details panel content per-module
+ * @param results - the data describing additional visualisation results (e.g. gene table)
+ * @param recordData - the data describing records/contigs and the genes within them
+ */
 export function start(regions: any, details: any, results: any, records: IRecord[]) {
     createRecordOverviews(records);
     allRegions = regions;

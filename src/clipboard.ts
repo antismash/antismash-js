@@ -4,7 +4,6 @@
 /**
  * An event handler that copies the attribute `data-seq` from the HTML element
  * to the clipboard.
- *
  */
 export function copyToClipboard(this: HTMLElement): void {
     const text = $(this).attr("data-seq") || "";
@@ -17,6 +16,12 @@ export function copyToClipboard(this: HTMLElement): void {
     alert("Sequence copied to clipboard");
 }
 
+/**
+ * Constructs HTML for a consistent clipboard copy element.
+ *
+ * @param data - the data to be copied to the clipboard.
+ * @returns The HTML for the element that will copy the given data to the clipboard.
+ */
 export function clipboardCopyConstruct(data: string): string {
     return `<span class="clipboard-copy" data-seq="${data}">Copy to clipboard</span>`;
 }

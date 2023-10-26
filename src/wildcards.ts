@@ -11,7 +11,6 @@ const WILDCARD_PATTERN = /@![^!]*!@/g;
 /**
  * Replaces all wildcards in the given text.
  *
- * @remarks
  * All replacement targets must use the {@link WILDCARD_PATTERN | expected pattern}
  * to mark substitution targets, and all targets must be contained by the data object.
  *
@@ -29,7 +28,6 @@ export function replaceWildcardsInText<Type>(text: string, data: Type) {
 /**
  * Replaces all wildcards in relevant elements within the given element.
  *
- * @remarks
  * Each {@link WILDCARD_CLASS | relevant child element} must have two attributes:
  * - one for the ORF's locus tag: see {@link LOCUS_ATTRIBUTE}
  * - one with a space separated list of other attributes to check: see {@link WILDCARD_ATTRIBUTE}

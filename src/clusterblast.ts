@@ -3,6 +3,11 @@
 
 let activeTooltip: JQuery<HTMLElement> | null = null;
 
+/**
+ * Initialises the labels and tooltip information for each reference ORF in the given element.
+ *
+ * @param parentID - the parent ID of the element containing the full visualisation for the antiSMASH region
+ */
 export function init(parentID: string) {
     $(`#${parentID} .clusterblast-orf`).each(function() {
         const orf = $(this);
@@ -11,6 +16,12 @@ export function init(parentID: string) {
     });
 }
 
+/**
+ * Creates, populates, and adds a handler for a div containing the label of a reference ORF.
+ *
+ * @param orf - the ORF element to add to
+ * @param parentID - the parent ID of the element containing the full visualisation for the antiSMASH region
+ */
 function setLabel(orf: JQuery<HTMLElement>, parentID: string): void {
     // parentID example: "clusterblast-16-svg", defined by antismash.modules.clusterblast
     const id = orf.attr("id");
@@ -42,6 +53,13 @@ function setLabel(orf: JQuery<HTMLElement>, parentID: string): void {
     });
 }
 
+/**
+ * Creates the tooltip and matching event handler for the given reference ORF as an
+ * initially hidden element in the parent element.
+ *
+ * @param orf - the reference ORF element
+ * @param parentID - the parent ID of the element containing the full visualisation for the antiSMASH region
+ */
 function setTooltip(orf: JQuery<HTMLElement>, parentID: string): void {
     const id = orf.attr("id");
     const tooltip = $("<div>");
@@ -52,6 +70,12 @@ function setTooltip(orf: JQuery<HTMLElement>, parentID: string): void {
     orf.click(tooltipHandler);
 }
 
+/**
+ * The handler for reference ORFs to temporarily show tooltips for the ORF that
+ * was clicked.
+ *
+ * @param ev - the JQuery event that triggered the handler
+ */
 function tooltipHandler(this: JQuery<HTMLElement>, ev: JQuery.Event): void {
     const tooltip = $(`#${$(this).attr("id")}-tooltip`);
 

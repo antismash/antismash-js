@@ -1,6 +1,12 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
+/**
+ * Visualisation functionality for generic domains, such as HMMer results of various databases,
+ * which were detected by antiSMASH.
+ * @module
+ */
+
 import {Path, path} from "d3-path";
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {select as d3select, selectAll as d3selectAll} from "d3-selection";
@@ -10,9 +16,23 @@ import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
 import {IDomainsOrf, IDomainsRegion, IHmmerDomain, IModule} from "./dataStructures.js";
 import {locusToFullId, zoom_to_selection} from "./viewer.js";
 
-interface ITool {
+/** Options for generic domain drawing.
+ */
+export interface IDrawOptions {
+    /** The region's anchor (e.g. "r1c1"). */
+    anchor: string;
+    /** Whether to completely reset/redraw the domains from scratch. */
+    reset: boolean;
+}
+
+/** Information about the domains to display and the tool within antiSMASH that found them.
+ */
+export interface ITool {
+    /** The name of the tool that detected the domains. */
     name: string;
+    /** The domain data for ORFS to use in visualisation. */
     data: IDomainsOrf[];
+    /** A URL to use as a base for building any links out to the database in question, if any. */
     url: string;
 }
 
@@ -29,6 +49,21 @@ let drawHeight: number = 25;
 
 const DOMAIN_CLASS = "generic-domain";
 
+/**
+ * Adds an ORF and its domains to the given SVG.
+ *
+ *
+ * @param chart - the SVG element
+ * @param orf - the data on the ORF and its domains
+ * @param position - the "row" of the ORF within the SVG
+ * @param uniqueIndex - a unique index for all ORFs across all regions
+ * @param interOrfPadding - the distance between ORFs rows in the SVG
+ * @param singleOrfHeight - the height to use for the ORF row
+ * @param width - the full width to use for the ORF domain visualisation
+ * @param scale - the d3 scale to convert length in amino acids to pixels
+ * @param tool - the tool data
+ * @param alwaysShowText - whether or not to show the names of the domains regardless of size
+ */
 function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>,
@@ -102,7 +137,9 @@ function addOrfDomainsToSVG(chart: any, orf: IDomainsOrf, position: number,
 }
 
 /**
- * Expected entry point from index.js, adds all the relevant handlers
+ * Expected entry point from index.js, adds all the relevant handlers.
+ *
+ * Drawing will be deferred until the containing detail tab is shown.
  */
 export function drawGenericDomains(anchor: string, data: any, height: number): void {
     regionData = data;
@@ -114,6 +151,13 @@ export function drawGenericDomains(anchor: string, data: any, height: number): v
     }
 }
 
+/**
+ * Deferred drawing of domains.
+ *
+ * @param id - the ID of the relevant DOM element
+ * @param tool - the data to draw
+ * @param height - the available height in which to draw the domains
+ */
 function actualDrawGenericDomains(id: string, tool: ITool, height: number): void {
     // if they already exist, don't draw them again
     if ($(`#${id}`).find(`svg.${DOMAIN_CLASS}-svg`).length > 0) {
@@ -222,6 +266,13 @@ function actualDrawGenericDomains(id: string, tool: ITool, height: number): void
     redrawGenericDomains();
 }
 
+/**
+ * Generates the tooltip for the given domain, including a URL if specified.
+ *
+ * @param domain - the domain for which to draw a tooltip
+ * @param url - the url to use, with the wildcard `$ACCESSION` being replaced by
+ *              the domain's accession
+ */
 function generateTooltip(domain: IHmmerDomain, url: string) {
     let html = `${domain.name}<br>`;
     if (url.length > 0) {
@@ -246,6 +297,11 @@ function generateTooltip(domain: IHmmerDomain, url: string) {
     return html;
 }
 
+/**
+ * An event handler to show the tooltip for the bound element.
+ *
+ * @param ev - the event that triggered the handler
+ */
 function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
     // hide any existing one
     const id = $(this).attr("data-id");
@@ -287,11 +343,20 @@ function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
         });
 }
 
+/**
+ * Sets the tooltip handlers for all domain elements.
+ */
 function init() {
     $(`.${DOMAIN_CLASS}-domain`).click(tooltipHandler);
 }
 
-export function redrawGenericDomains(options: any = null) {
+/**
+ * Redraws the ORF domain SVGs with the provided options.
+ * Requires that region data is already set via {@link drawGenericDomains}.
+ *
+ * @param options - the options to use, if any
+ */
+export function redrawGenericDomains(options?: IDrawOptions) {
     if (options && options.reset) {
         // reset everything, including the first click handlers
         drawGenericDomains(options.anchor, regionData, drawHeight);

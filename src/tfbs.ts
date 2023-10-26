@@ -47,15 +47,14 @@ const minGeneWidth = 100;
 /**
  * Adds SVG elements to the parent element to show arrows
  *
- * @remarks
  * All replacement targets must use the {@link WILDCARD_PATTERN | expected pattern}
  * to mark substitution targets, and all targets must be contained by the data object.
  *
  * @param parent - the parent group element
  * @param start - the start coordinate of the arrow
  * @param end - the end coordinate of the arrow
- * @y - the Y coordinate for the arrow line
- * @arrowSize - the height of the arrow head from center line to top/bottom
+ * @param y - the Y coordinate for the arrow line
+ * @param arrowSize - the height of the arrow head from center line to top/bottom
  */
 function buildArrow(parent: any, start: number, end: number, y: number, arrowSize: number) {
     const arrowHalf = arrowSize / 2;

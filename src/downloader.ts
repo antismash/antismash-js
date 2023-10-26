@@ -7,6 +7,9 @@ const PREFIX = {
     xmlns: "http://www.w3.org/2000/xmlns/",
 };
 
+/**
+ * Adds event handlers to all SVG download buttons/icons.
+ */
 export const initDownloadButtons = (): void => {
     const buttons = document.querySelectorAll(".download-svg");
     buttons.forEach((button) => {
@@ -15,6 +18,12 @@ export const initDownloadButtons = (): void => {
     });
 };
 
+/**
+ * The event handler for downloading an SVG.
+ *
+ * @param event - the event that triggered the handler
+ * @returns A boolean indicating whether the event should bubble up.
+ */
 function downloadSvgListener(event: Event): boolean {
     if (!event.target) {
         // Something is odd here, allow the event to bubble up.
@@ -30,6 +39,12 @@ function downloadSvgListener(event: Event): boolean {
     return false;
 }
 
+/**
+ * Creates a file for, and causes the browser to download, the SVG referred to.
+ *
+ * @param id - the identifier of the SVG element
+ * @param filename - the filename to use for the created file
+ */
 export const downloadSvg = (id: string, filename: string): void => {
     const svgContainer = document.querySelector(`#${id}`);
     if (!svgContainer) {
@@ -69,6 +84,12 @@ export const downloadSvg = (id: string, filename: string): void => {
     a.click();
 };
 
+/**
+ * Adds some relevant SVG attributes to the given element to ensure it is valid
+ * for non-browser applications.
+ *
+ * @param svg - the SVG HTML element to adjust
+ */
 function fixupSvg(svg: SVGElement): void {
     if (!svg.hasAttribute("version")) {
         svg.setAttribute("version", "1.1");
@@ -84,6 +105,14 @@ function fixupSvg(svg: SVGElement): void {
     document.body.removeChild(svg);
 }
 
+/**
+ * Adds the applicable CSS properties to an element within an SVG so that it appears
+ * the same when downloaded independently as it does within the browser that would
+ * normally use a separate style sheet.
+ *
+ * @param element - the SVG child element to modify
+ * @param emptySVGStyle - the default CSS for SVGs of this class
+ */
 function setStyle(element: Element, emptySVGStyle: Map<string, any>): void {
     const computedStyle = getComputedStyle(element);
     let styleString = "";
@@ -104,6 +133,12 @@ function setStyle(element: Element, emptySVGStyle: Map<string, any>): void {
     element.setAttribute("style", styleString);
 }
 
+/**
+ * Gathers all descendants of the given element.
+ *
+ * @param node - the SVG element for which to find all descendants
+ * @param tree - an array in which to collect all descendants
+ */
 function walkTree(node: Element, tree: Element[]): void {
     if (!node?.hasChildNodes()) {
         return;
@@ -119,6 +154,12 @@ function walkTree(node: Element, tree: Element[]): void {
 
 }
 
+/**
+ * Gathers all descendants of the given element.
+ *
+ * @param node - the SVG element for which to find all descendants
+ * @returns An array of all descendants of the given element.
+ */
 function initTree(element: Element): Element[] {
     const tree: Element[] = [];
     tree.push(element);
@@ -126,6 +167,12 @@ function initTree(element: Element): Element[] {
     return tree;
 }
 
+/**
+ * Modifies an SVG element to embed the same styling as it would have had via
+ * the external CSS style sheet for the page.
+ *
+ * @param element - the SVG to modify
+ */
 function styleSvg(element: SVGElement): void {
     const emptySVG = document.createElementNS(PREFIX.svg, "svg");
     document.body.appendChild(emptySVG);

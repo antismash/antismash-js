@@ -3,6 +3,9 @@
 
 import SmilesDrawer from "smiles-drawer";
 
+/**
+ *  Draws the chemical structure of a given element using the embedded SMILES.
+ */
 export function drawStructure(this: HTMLElement): void {
     const canvas: HTMLCanvasElement = this as HTMLCanvasElement;
     const options = {
@@ -54,6 +57,9 @@ export function drawStructure(this: HTMLElement): void {
     });
 }
 
+/**
+ *  Draws the chemical structure of all matching elements.
+ */
 export function drawStructures(): void {
   $(".smiles-canvas").each(drawStructure);
   $(".modal-container").off("click").click(() => $(".modal-container").hide());

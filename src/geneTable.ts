@@ -19,8 +19,9 @@ const CLASS_PREFIX = "gt";
  * @param query - the query string as regex
  * @param table - the table in which to search in and modify visibility of rows
  * @param extraData - additional data for each row in the table, keyed by locus tag
+ * @returns A boolean indiciting if any matching were found.
  */
-function searchTable(query: RegExp, table: HTMLTableElement, extraData: any) {
+function searchTable(query: RegExp, table: HTMLTableElement, extraData: any): boolean {
     let rowCounter = 0;
     const loci: string[] = [];
     let anyHits = false;

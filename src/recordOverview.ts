@@ -6,6 +6,13 @@ import {event as d3event, select as d3select} from "d3-selection";
 
 import {IRecord, IRegion} from "./dataStructures.js";
 
+/**
+ * Creates the overview SVG for the given record, showing the locations of each region
+ *
+ * @param record - the index of the record
+ * @param regions - the regions contained within the record
+ * @param recordLength - the length of the record in nucleotides
+ */
 function createRecordOverview(record: number, regions: IRegion[], recordLength: number): void {
     if (regions.length === 0) {
         return;
@@ -78,6 +85,11 @@ function createRecordOverview(record: number, regions: IRegion[], recordLength: 
 
 }
 
+/**
+ * Creates overview SVGs for each of the given records
+ *
+ * @param records - the records for which to draw SVGs for
+ */
 export function createRecordOverviews(records: IRecord[]): void {
     let i = 0; // records are 1-indexed in user facing world
     for (const record of records) {

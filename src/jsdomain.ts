@@ -19,6 +19,15 @@ const jsdomain = {
     version: "0.0.1",
 };
 
+/**
+ * Builds an SVG path element string for one half of a cross-CDS module.
+ *
+ * @param module - the module to construct the path for, either head or tail
+ * @param scale - the d3 scale to convert length in amino acids to pixels
+ * @param top - the Y coordinate of the top of the module
+ * @param height - the height to use for the module
+ * @param radius - the radius to use for the non-broken corners of the module
+ */
 function buildMultiCDSModulePath(module: IModule, scale: d3.ScaleLinear<number, number>,
                                  top: number, height: number, radius: number) {
     const detail = path();
@@ -49,6 +58,18 @@ function buildMultiCDSModulePath(module: IModule, scale: d3.ScaleLinear<number, 
     return detail.toString();
 }
 
+/**
+ * Adds the NRPS/PKS domains for a particular ORF to the visualisation
+ *
+ * @param chart - the SVG to add the domains to
+ * @param orf - the ORF data
+ * @param position - the "row" of the ORF within the SVG
+ * @param uniqueIndex - a unique index for all ORFs across all regions
+ * @param top - the Y coordinate of the top of the ORF row
+ * @param singleOrfHeight - the height to use for the ORF row
+ * @param width - the full width to use for the ORF domain visualisation
+ * @param scale - the d3 scale to convert length in amino acids to pixels
+ */
 function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
                             uniqueIndex: number, interOrfPadding: number,
                             singleOrfHeight: number, width: number, scale: d3.ScaleLinear<number, number>) {
@@ -190,6 +211,16 @@ function addOrfDomainsToSVG(chart: any, orf: INrpsPksOrf, position: number,
         });
 }
 
+/**
+ * Adds a event handler to the given region to draw the domains when the
+ * relevant details panel is selected.
+ * Domains won't be drawn until the event is fired, this saves loading time and
+ * ensures the available screen width can be calculated before drawing
+ *
+ * @param anchor - the anchor label of the region
+ * @param region - the domain data of the region
+ * @param height - the available height in which to draw the domains
+ */
 export function drawDomains(anchor: string, region: IDomainsRegion, height: number): void {
     // avoid width calculation errors by drawing only when tab is first selected
     $(`.body-details-header.${anchor}-nrps_pks`).off(".firstClick").one("click.firstClick", () => {
@@ -197,6 +228,13 @@ export function drawDomains(anchor: string, region: IDomainsRegion, height: numb
     });
 }
 
+/**
+ * Deferred drawing of a region's domains.
+ *
+ * @param id - the ID of the relevant DOM element
+ * @param region - the domain data of the region
+ * @param height - the available height in which to draw the domains
+ */
 function actualDrawDomains(id: string, region: IDomainsRegion, height: number): void {
     const container = d3select(`#${id}`);
     const singleOrfHeight = height;
@@ -279,6 +317,12 @@ function actualDrawDomains(id: string, region: IDomainsRegion, height: number): 
     redrawDomains();
 }
 
+/**
+ * Generates the tooltip for the given domain.
+ *
+ * @param domain - the domain for which to generate the tooltip
+ * @param orf - the data for the domain's parent ORF
+ */
 function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
     let html = `${domain.type}<br>Location: ${domain.start}-${domain.end} AA<br>`;
     if (domain.napdoslink.length > 0) {
@@ -301,6 +345,11 @@ function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
     return html;
 }
 
+/**
+ * The event handler for showing a domain's tooltip.
+ *
+ * @param ev - the event triggering the handler
+ */
 function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
     // hide any existing one
     const id = $(this).attr("data-id");
@@ -342,6 +391,13 @@ function tooltipHandler(this: HTMLElement, ev: JQuery.Event) {
         });
 }
 
+/**
+ * The event handler for showing a domain's tooltip when the covering module lid is clicked.
+ * If there is a domain under the lid at the location of the event, the event handler for
+ * that domain will also be triggered in turn.
+ *
+ * @param ev - the event triggering the handler
+ */
 function lidClick(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
     $(this).hide();
     if (event.clientX && event.clientY) {
@@ -353,11 +409,17 @@ function lidClick(this: HTMLElement, event: JQuery.Event<HTMLElement, null>) {
     $(this).show();
 }
 
+/**
+ * Adds the event handlers to all domains and module lids.
+ */
 function init() {
     $(".jsdomain-domain").click(tooltipHandler);
     $(".jsdomain-module-lid").click(lidClick);
 }
 
+/**
+ * Redraws the ORF domain SVGs with options as set by input elements.
+ */
 export function redrawDomains() {
     if ($("input.domains-selected-only").prop("checked")) {
         $(".jsdomain-svg").hide();
@@ -373,6 +435,9 @@ export function redrawDomains() {
     }
 }
 
+/**
+ * Redraws the ORF domain SVGs with options sa provided by input elements.
+ */
 export function createModuleHandlers() {
     $("input.show-module-domains")
         .change(function() {

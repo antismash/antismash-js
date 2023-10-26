@@ -9,6 +9,13 @@ import {selectOrfsByLoci, tag_to_id} from "./viewer.js";
 let pbData: any = null;
 let region: IRegion | null = null;
 
+/**
+ * Sets the globals and handlers for the given region and its data
+ *
+ * @param anchor - the identifier for the region (e.g. 'r1c1')
+ * @param results - the region's comparison data
+ * @param regionData - the generic data for the region
+ */
 export function setComparisonData(anchor: string, results: any, regionData: IRegion) {
     pbData = results;
     region = regionData;
@@ -19,6 +26,15 @@ export function setComparisonData(anchor: string, results: any, regionData: IReg
     }
 }
 
+/**
+ * Creates the SVG path components that visualise the given ORF
+ *
+ * @param orf - the ORF data
+ * @param scale - the d3 scale with which to map nucleotide coordinates to SVG coordinates
+ * @param orfY - the vertical mid-point of the arrow
+ * @param orfHeight - the full height to use for the arrow
+ * @param reversed - whether this gene is on the reverse strand or not, defaults to False
+ */
 function geneArrowPoints(orf: IOrf, scale: any, orfY: number, orfHeight: number, reversed?: boolean): string {
     const upper: number = orfY + orfHeight / 2;
     const lower: number = orfY - orfHeight / 2;
@@ -53,6 +69,13 @@ function geneArrowPoints(orf: IOrf, scale: any, orfY: number, orfHeight: number,
     return `${orf.start},${upper} ${scale(orf.end)},${upper} ${scale(orf.end)},${lower} ${scale(orf.start)},${lower}`;
 }
 
+/**
+ * Adds all the relevant component elements to the the given SVG element, with the given reference data
+ *
+ * @param chart - the SVG element to add components to
+ * @param reference - the name/description of the reference data
+ * @param referenceData - the full data for the reference
+ */
 function drawSVG(chart: any, svgID: string, reference: string, referenceData: any): void {
     if (referenceData === null || region === null) {
         return;
@@ -177,6 +200,15 @@ function drawSVG(chart: any, svgID: string, reference: string, referenceData: an
         .text((d: IOrf) => d.locus_tag);
 }
 
+/**
+ * Constructs the details for ClusterCompare's results for a region, including
+ * binding relevant handlers for the data selectors and rows.
+ *
+ * Uses the result data set with {@link setComparisonData}
+ *
+ * @param parentID - the ID of the parent element
+ * @param db - the name of the database matching the existing data
+ */
 function comparisonDetailHandler(parentID: string, db: string): void {
     const anchor = window.location.hash.substring(1);
     const select = document.getElementById(`comparison-${db}-${anchor}-selector`) as HTMLInputElement;
@@ -204,6 +236,10 @@ function comparisonDetailHandler(parentID: string, db: string): void {
     rows.first().click();
 }
 
+/**
+ * Sets the various interaction event handlers for the SVG already drawn.
+ *
+ */
 function createHandlers() {
     $(".cc-svg-orf").mouseover(function(e) {
         const id = $(this).attr("id");
