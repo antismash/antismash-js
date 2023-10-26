@@ -6,7 +6,11 @@ A custom library for antiSMASH genome viewing.
 Building
 --------
 
-Requires `npm`. Then you can run either
+Requires `npm`. Install the dependencies with:
+```
+npm ci
+```
+Then you can run either
 ```
 make
 ```
