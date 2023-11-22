@@ -6,6 +6,7 @@ dev: compile
 
 prod: lint compile
 	./node_modules/.bin/webpack --mode production
+	git describe --exact-match HEAD && sed -i "1i /* antismash-js, version `git describe --exact-match HEAD | sed 's/v//g'` */" dist/antismash.js
 
 lint:
 	npm run lint
