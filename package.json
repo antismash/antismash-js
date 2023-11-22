@@ -15,6 +15,7 @@
     "@types/d3": "^5.0.1",
     "@types/d3-path": "^1.0.8",
     "@types/jquery": "^3.3.22",
+    "git-revision-webpack-plugin": "^5.0.0",
     "jquery": "^3.4.1",
     "ts-loader": "^5.3.0",
     "tslint": "^5.20.1",

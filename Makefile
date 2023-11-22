@@ -1,16 +1,19 @@
-all: prod
+SOURCE_FILES := $(wildcard src/*.ts)
 
-dev: compile
+dev: dist/antismash_dev.js
+
+dist/antismash_dev.js: $(SOURCE_FILES)
+	rm -f dist/antismash.js
 	./node_modules/.bin/webpack --mode development
-	sed -i "2i /* `git describe --dirty` `git branch --show-current` */" dist/antismash.js
 
-prod: lint compile
+prod: dist/antismash.js
+
+dist/antismash.js: $(SOURCE_FILES)
+	npm run lint
 	./node_modules/.bin/webpack --mode production
 
 lint:
 	npm run lint
 
-compile:
-	npm run compile
-
-.PHONY: all dev prod lint compile
+.DEFAULT_GOAL=prod
+.PHONY: all lint
