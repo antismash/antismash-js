@@ -2,7 +2,7 @@
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
 import {copyToClipboard} from "./clipboard.js";
-import {init as prepClusterblast} from "./clusterblast.js";
+import {drawClusterblast, setClusterblastData} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {setComparisonData} from "./comparison.js";
 import {IRecord} from "./dataStructures.js";
@@ -71,7 +71,7 @@ function switchToRegion() {
         if ($(`#${anchor}-details-svg`).length > 0) {
             drawDomains(anchor, detailsData.nrpspks[anchor], domainOrfHeight);
         }
-        $(`#${anchor} .clusterblast-selector`).change();
+        setClusterblastData(anchor, resultsData[anchor]["antismash.modules.clusterblast"], allRegions[anchor]);
         if (anchor in resultsData) {
             if ("antismash.modules.cluster_compare" in resultsData[anchor]) {
                 setComparisonData(anchor, resultsData[anchor]["antismash.modules.cluster_compare"], allRegions[anchor]);
@@ -319,19 +319,6 @@ export function start(regions: any, details: any, results: any, records: IRecord
         /* and reset the select region label text */
         const label = $("#region-type");
         label.text(label.data("orig_text"));
-    });
-
-    $(".clusterblast-selector").change(function() {
-        const id = ($(this).attr("id") || "nonexistant").replace("-select", "");
-        const url = "" + $(this).val();
-        if (url) {
-            $.get(url, (data) => {
-                $(`#${id}-svg`).html(data);
-                prepClusterblast(`${id}-svg`);
-            }, "html");
-        }
-        $(`#${id}-download`).off("click");
-        $(`#${id}-download`).click(() => window.open("" + $(`#${id}-select`).val(), "_blank"));
     });
     $(".comparison-selector").change(function() {
         const id = ($(this).attr("id") || "nonexistant").replace("-selector", "");
