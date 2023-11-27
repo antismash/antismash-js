@@ -549,13 +549,10 @@ function createMinimap(chart: any, regionStart: number, regionEnd: number,
  * Returns positive integers for cases where the first ORF provided should be drawn before the second,
  * and negative numbers when the second should be drawn before the first.
  *
- * @param a - the first ORF
- * @param regionStart - the start of the region, in nucleotides
- * @param regionEnd - the end of the region, in nucleotides
- * @param centerline - the Y coordinate for the midpoint of the minimap's height
- * @param minimapHeight - the height to use for the minimap
- * @param orfs - the ORFs to display in the minimap, this should match those supplied to the main view
- * @param fullWidth - the width of the main view
+ * @param a - the first ORF to order
+ * @param b - the second ORF to order
+ *
+ * @returns A positive value if a sorts before b, otherwise a negative value
  */
 function sort_biosynthetic_orfs_last(a: IOrf, b: IOrf): number {
     if ((a.type !== "biosynthetic" && b.type !== "biosynthetic") ||
