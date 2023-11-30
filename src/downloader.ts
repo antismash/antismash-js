@@ -50,6 +50,7 @@ export const downloadSvg = (id: string, filename: string): void => {
     if (!svgContainer) {
         return;
     }
+    const childCount = svgContainer.children.length;
 
     let origSvg: Element | null;
 
@@ -76,6 +77,10 @@ export const downloadSvg = (id: string, filename: string): void => {
     const clickHandler = (event: Event) => {
         setTimeout(() => {
             event?.target?.removeEventListener("click", clickHandler);
+            const outer = $(`#${id}`);
+            if (outer.children().length > childCount) {
+                outer.children().last().remove();
+            }
         }, 200);
     };
 
