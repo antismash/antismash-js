@@ -17,7 +17,7 @@ interface IHit {
     readonly start: number;
     readonly end: number;
     readonly strand: number;
-    readonly confidence: number;
+    readonly confidence: string;
     readonly presequence: string;
     readonly sequence: string;
     readonly postsequence: string;
@@ -25,6 +25,7 @@ interface IHit {
     readonly contained_by_left: boolean;
     readonly matches: boolean[];
     readonly left?: IGene;
+    readonly mid?: IGene;
     readonly right?: IGene;
 }
 
@@ -78,7 +79,7 @@ function buildArrow(parent: any, start: number, end: number, y: number, arrowSiz
  * @param anchor - the anchor string of the element
  * @param results - the results as provided by antiSMASH's generate_javascript_data for the module
  */
-export function drawBindingSites(anchor: string, results: any) {
+export function drawBindingSites(anchor: string, results: IHit[]) {
     if (!results) {
         return;
     }
@@ -257,7 +258,7 @@ export function drawBindingSites(anchor: string, results: any) {
                 .attr("fill", "none");
         };
 
-        if (hit.contained_by_left) {
+        if (hit.left && hit.contained_by_left && hit.right) {
             // invert
             drawGene(svg, hit.left, contextStart - geneDX, hit.left.strand === 1,
                      -geneWidth, "start", contextStart - geneDX - geneWidth * .9);
@@ -282,7 +283,7 @@ export function drawBindingSites(anchor: string, results: any) {
                 // don't use the same gene drawing function as the others,
                 // since they're completely different location, etc
                 const midStart = seqStart + (hit.mid.location - hit.start) * charSize;
-                const midEnd = midStart + hit.mid.length * charSize;
+                const midEnd = midStart + (hit.mid.length || 0) * charSize;
                 const tipSize = (midEnd - midStart) * 0.05;
                 let path = "";
                 if (hit.mid.strand !== -1) {
