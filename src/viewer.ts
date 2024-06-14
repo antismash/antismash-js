@@ -315,6 +315,17 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
     }
 }
 
+/**
+ * Draws an entire region, creating an SVG element
+ *
+ * @param id - the identifier of the SVG's parent container
+ * @param regionToDraw - the region data
+ * @param height - the height of the SVG
+ * @param width - the width of the SVG
+ * @param y - the Y coordinate to use for ?
+ * @param selectionStart - the start position of the view
+ * @param selectionEnd - the end position of the view
+ */
 export function drawRegion(id: string, regionToDraw: IRegion, height: number,
                            selectionStart?: number, selectionEnd?: number): void {
     if (displayedRegion) {
