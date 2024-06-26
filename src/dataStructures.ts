@@ -89,7 +89,6 @@ export interface IRegion {
     readonly start: number;
     readonly end: number;
     readonly idx: number;
-    readonly ttaCodons: ITTACodon[];
     readonly clusters: ICluster[];
     readonly orfs: IOrf[];
     readonly label: string;

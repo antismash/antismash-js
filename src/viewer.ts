@@ -272,7 +272,7 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
     const axisHeight = 20;
     const minimapHeight = 40;
     const clusterHeight = Math.max.apply(Math, region.clusters.map((border) => border.height)) * 12;
-    const undergeneHeight = (resistancesPresent || region.ttaCodons.length > 0) ? Math.floor(height * 2 / 3) : 0;
+    const undergeneHeight = resistancesPresent ? Math.floor(height * 2 / 3) : 0;
     const realHeight = height + (2 * LABEL_HEIGHT) + clusterHeight + minimapHeight + axisHeight + undergeneHeight;
     const regionIndex: number = region.idx;
 
@@ -290,7 +290,6 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
     const allTTAs: ITTACodon[] = [];
     allOrfs.push.apply(allOrfs, region.orfs.sort(sort_biosynthetic_orfs_last));
     allBorders.push.apply(allBorders, region.clusters ? region.clusters : []);
-    allTTAs.push.apply(allTTAs, region.ttaCodons ? region.ttaCodons : []);
 
     const idx = uniqueID++;
     verticalOffset = height / 10;
