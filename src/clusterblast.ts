@@ -332,9 +332,11 @@ function drawSVG(chart: any, svgID: string, query: IQueryCluster, data: IVariant
     let centerline = startHeight * 0.25;
     const regionNumber = region.idx;
     const imageWidth = 800;
-    const queryBufferSize = 0.5 * (maxLength - (query.end - query.start));
+    const trimmedStart = region.orfs.reduce((prev, curr) => prev.start < curr.start ? prev : curr).start;
+    const trimmedEnd = region.orfs.reduce((prev, curr) => prev.start > curr.start ? prev : curr).end;
+    const queryBufferSize = 0.5 * (maxLength - (trimmedEnd - trimmedStart));
     const scale = d3scaleLinear()
-        .domain([region.start - queryBufferSize, region.end + queryBufferSize])
+        .domain([trimmedStart - queryBufferSize, trimmedEnd + queryBufferSize])
         .range([0, imageWidth]);
 
     chart.attr("viewport", `0 ${fullHeight} 0 ${width}`)
