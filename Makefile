@@ -1,19 +1,26 @@
 SOURCE_FILES := $(wildcard src/*.ts)
+BUILD_FILES := $(wildcard build/*.ts)
+.DELETE_ON_ERROR:
 
 dev: dist/antismash_dev.js
 
-dist/antismash_dev.js: $(SOURCE_FILES)
+build/index.js: $(SOURCE_FILES)
+	npm run compile
+
+dist/antismash_dev.js: build/index.js $(SOURCE_FILES)
 	rm -f dist/antismash.js
 	./node_modules/.bin/webpack --mode development
 
 prod: dist/antismash.js
 
-dist/antismash.js: $(SOURCE_FILES)
-	npm run lint
+dist/antismash.js: lint build/index.js $(SOURCE_FILES)
 	./node_modules/.bin/webpack --mode production
 
 lint:
 	npm run lint
+
+clean:
+	rm -rf dist build
 
 .DEFAULT_GOAL=prod
 .PHONY: all lint
