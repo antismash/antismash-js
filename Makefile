@@ -1,5 +1,5 @@
-SOURCE_FILES := $(wildcard src/*.ts)
-BUILD_FILES := $(wildcard build/*.ts)
+SOURCE_FILES := $(shell find src -name '*.ts')
+BUILD_FILES := $(shell find build -name '*.ts')
 .DELETE_ON_ERROR:
 
 dev: dist/antismash_dev.js
