@@ -20,6 +20,8 @@ interface IClusterblastOrf {
     readonly end: number;
     readonly strand: number;
     readonly product: string;
+    readonly real_start: number;
+    readonly real_end: number;
 }
 
 interface IOrfMatch {
@@ -41,6 +43,8 @@ interface IReferenceCluster {
     readonly start: number;
     readonly end: number;
     readonly genes: IReferenceOrf[];
+    readonly real_start: number;
+    readonly real_end: number;
     reverse: boolean;
 }
 
@@ -132,7 +136,7 @@ function tooltipHandler(orf: IReferenceOrf, x: number, y: number, variant: strin
     tooltip.hide();
     tooltip.find(".clusterblast-tooltip-locus").html(orf.locus_tag);
     tooltip.find(".clusterblast-tooltip-product").html(orf.product);
-    tooltip.find(".clusterblast-tooltip-location").html(`${orf.start} - ${orf.end}`);
+    tooltip.find(".clusterblast-tooltip-location").html(`${orf.real_start} - ${orf.real_end}`);
     const matchElements = tooltip.find(".clusterblast-tooltip-matches");
     matchElements.find(".cb-tooltip-table-cell").remove();
     if (orf.matches.length < 1) {
@@ -356,7 +360,7 @@ function drawSVG(chart: any, svgID: string, query: IQueryCluster, data: IVariant
 
     // ORFs
     const orfs: d3.Selection<SVGGElement, IClusterblastOrf, any, any> = queryGroup.selectAll("g.cb-svg-orf-group")
-        .data(query.genes)
+        .data(region.orfs)
         .enter().append("g").attr("class", "cb-svg-orf-group");
     // draw each ORF
     orfs.append("polygon")
