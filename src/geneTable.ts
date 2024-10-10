@@ -172,8 +172,12 @@ function fillTable(tableSelector: string, region: IRegion, data: any) {
     for (const orf of region.orfs.sort((a, b) => a.start - b.start)) {
         const blastLink = replaceWildcardsInText(data.blast_template, orf);
         const selectedMarker = replaceWildcardsInText(data.selected_template, orf);
+        let realName = orf.locus_tag;
+        if (orf.group !== undefined) {
+            realName = realName.replace(/_split$/gi, "");
+        }
         const cells = [
-            `<td class="serif search-cell" data-type="name">${selectedMarker}${orf.locus_tag}</td>`,
+            `<td class="serif search-cell" data-type="name">${selectedMarker}${realName}</td>`,
             `<td class="search-cell" data-type="product">${orf.product}</td>`,
             `<td class="gt-cell-numeric">${orf.dna.length}</td>`,
             `<td class="gt-cell-numeric">${orf.translation.length}</td>`,
