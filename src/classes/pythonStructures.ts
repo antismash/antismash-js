@@ -40,6 +40,7 @@ export interface IOrf {
     readonly dna: string;
     readonly resistance?: boolean;
     readonly color?: string;
+    readonly group?: number;
 }
 
 export interface IModule {
@@ -70,14 +71,15 @@ export interface IDomainsOrf extends IDomainOrfBase {
 export interface ICluster {
     readonly start: number;
     readonly end: number;
-    readonly neighbouring_start: number;
-    readonly neighbouring_end: number;
-    readonly product: string;
-    readonly category: string;
+    readonly neighbouring_start?: number;
+    readonly neighbouring_end?: number;
+    readonly product?: string;
+    readonly category?: string;
     readonly height: number;
-    readonly tool: string;
-    readonly kind: string;
-    readonly prefix: string;
+    readonly tool?: string;
+    readonly kind?: string;
+    readonly prefix?: string;
+    readonly group?: number;
 }
 
 export interface ITTACodon {
@@ -129,4 +131,6 @@ export interface ISource {
     readonly recordStart: number;
     readonly recordEnd: number;
     readonly name?: string;
+    scale?: d3.ScaleLinear<number, number>;
+    axis?: d3.Axis<any>;
 }

@@ -16,23 +16,48 @@ General interaction aims:
         zooms to the collection of genes
 
 */
-
-import {axisBottom as d3axisBottom} from "d3-axis";
+import {axisBottom as d3axisBottom, AxisScale} from "d3-axis";
 import {drag as d3drag} from "d3-drag";
-import {scaleLinear as d3scaleLinear} from "d3-scale";
+import {path} from "d3-path";
+import {ScaleLinear, scaleLinear as d3scaleLinear} from "d3-scale";
 import {event as d3event, select as d3select, selectAll as d3selectAll} from "d3-selection";
 import "d3-transition";  // modifies select and selectAll
 
+import {Area} from "./classes/area.js";
+import {addCircularMarkerGroup, CircularMarkerInfo} from "./classes/circular_marker.js";
+import {Coordinates} from "./classes/coordinates.js";
+import {Dimensions} from "./classes/dimensions.js";
+import {Orf} from "./classes/orf.js";
+import {IBindingSite, IOrf, IRegion, ISites, ISource, ITTACodon} from "./classes/pythonStructures.js";
+import {Transform} from "./classes/transform.js";
 import {copyToClipboard} from "./clipboard.js";
 import {toggleCollapser, toggleCollapserHandler} from "./collapsers.js";
-import {IBindingSite, ICluster, IOrf, IRegion, ISites, ISource, ITTACodon} from "./dataStructures.js";
 import {replaceWildcards} from "./wildcards.js";
 
 let HEIGHT = 100;
 const LABEL_HEIGHT = 14;
 const VERSION: string = "0.0.1";
 
+const BAR_GROUP_CLASS = "cluster-bar-group";
+const ORF_GROUP_CLASS = "svgeneorf-group";
 const SELECTED_ORF_CLASS = "svgene-selected-orf";
+
+class SourceInfo {
+    public sourceData: ISource;
+    public scale: d3.ScaleLinear<number, number>;
+    public axis: d3.Axis<any>;
+    public wrapPoint: number;
+    public y: number;
+
+    constructor(source: ISource, sourceScale: d3.ScaleLinear<number, number>,
+                sourceAxis: d3.Axis<any>, wrapPoint: number, y: number) {
+        this.sourceData = source;
+        this.scale = sourceScale;
+        this.axis = sourceAxis;
+        this.wrapPoint = wrapPoint;
+        this.y = y;
+    }
+}
 
 /**
  * Selects all ORFs in the visualisation by the locus tags/names used in the data.
@@ -47,9 +72,23 @@ export function selectOrfsByLoci(tags: string[], multiSelect: boolean = false) {
     if (tags.length < 1) {
         return;
     }
-    let selection = $(`#${locusToFullId(tags[0])}-svgeneorf`);
+    let id = `#${locusToFullId(tags[0])}-${ORF_GROUP_CLASS}`;
+    let selection = $(id);
+    let node: d3.Selection<any, Orf, any, any> = d3selectAll(id);
+    let data: Orf = node.datum();
+    selection = selection.add($(`#${locusToFullId(data.locusTag)}`));
+    if (data.otherSide !== undefined) {
+        selection = selection.add($(`#${locusToFullId(data.otherSide.locusTag)}-${ORF_GROUP_CLASS}`));
+    }
     for (const tag of tags.slice(1)) {
-        selection = selection.add(`#${locusToFullId(tag)}-svgeneorf`);
+        id = `#${locusToFullId(tag)}-${ORF_GROUP_CLASS}`;
+        selection = selection.add(id);
+
+        node = d3selectAll(id);
+        data = node.datum();
+        if (data.otherSide !== undefined) {
+            selection = selection.add(`#${locusToFullId(data.otherSide.locusTag)}-${ORF_GROUP_CLASS}`);
+        }
     }
     if (multiSelect) {
         multi_select(selection);
@@ -93,23 +132,68 @@ export function clearSelectedOrfs() {
  *
  * @param orf - The ORF to build from
  */
-function geneArrowPoints(orf: IOrf): string {
+function geneArrowPoints(orf: Orf, pathNotPoly?: boolean): string {
     const upper: number = orfY + LABEL_HEIGHT + verticalOffset;
     const lower: number = orfY + LABEL_HEIGHT + HEIGHT - verticalOffset;
     const middle: number = orfY + LABEL_HEIGHT + (HEIGHT / 2);
+    let asString: string = "";
     if (orf.strand === 1) {
         const start: number = scale(orf.start);
         const boxEnd: number = Math.max(scale(orf.end) - (2 * verticalOffset), start);
         const pointEnd: number = scale(orf.end);
-        return `${start},${upper} ${boxEnd},${upper} ${pointEnd},${middle} ${boxEnd},${lower} ${start},${lower}`;
-    }
-    if (orf.strand === -1) {
+        if (pathNotPoly) {
+            const detail = path();
+            detail.moveTo(start, upper);
+            detail.lineTo(boxEnd, upper);
+            detail.lineTo(pointEnd, middle);
+            detail.lineTo(boxEnd, lower);
+            detail.lineTo(start, lower);
+            asString = detail.toString();
+        } else {
+            asString = `${start},${upper} ${boxEnd},${upper} ${pointEnd},${middle} ${boxEnd},${lower} ${start},${lower}`;
+        }
+    } else if (orf.strand === -1) {
         const pointStart = scale(orf.start);
         const end = scale(orf.end);
         const boxStart = Math.min(scale(orf.start) + (2 * verticalOffset), end);
-        return `${pointStart},${middle} ${boxStart},${upper} ${end},${upper} ${end},${lower} ${boxStart},${lower}`;
+        if (pathNotPoly) {
+            const detail = path();
+            if (orf.isSplit()) {
+                detail.moveTo(end, upper);
+                detail.lineTo(boxStart, upper);
+                detail.lineTo(pointStart, middle);
+                detail.lineTo(boxStart, lower);
+                detail.lineTo(end, lower);
+            } else {
+                detail.moveTo(pointStart, middle);
+                detail.lineTo(boxStart, upper);
+                detail.lineTo(end, upper);
+                detail.lineTo(end, lower);
+                detail.lineTo(boxStart, lower);
+            }
+            asString = detail.toString();
+        } else {
+            asString = `${pointStart},${middle} ${boxStart},${upper} ${end},${upper} ${end},${lower} ${boxStart},${lower}`;
+        }
+    } else {
+        const start = scale(orf.start);
+        const end = scale(orf.end);
+        if (pathNotPoly) {
+            const detail = path();
+            detail.moveTo(start, upper);
+            detail.lineTo(end, upper);
+            detail.lineTo(end, lower);
+            detail.lineTo(start, lower);
+            asString = detail.toString();
+        } else {
+            asString = `${start},${upper} ${end},${upper} ${end},${lower} ${start},${lower}`;
+        }
     }
-    return `${orf.start},${upper} ${orf.end},${upper} ${orf.end},${lower} ${orf.start},${lower}`;
+    // if a path is requested and it isn't interrupted by the origin, close the path
+    if (pathNotPoly && !orf.isSplit()) {
+        asString += "Z";
+    }
+    return asString;
 }
 
 /**
@@ -142,69 +226,75 @@ function ttaCodonPoints(codon: ITTACodon, height: number, offset: number, border
  * @param selectionStart - the start position of the view
  * @param selectionEnd - the end position of the view
  */
-function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[], sites: ISites,
-                               idx: number, height: number, width: number, offset: number,
-                               selectionStart: number, selectionEnd: number): void {
+function drawOrderedRegionOrfs(chart: any, allOrfs: Orf[], borders: Area[], sites: ISites,
+                               idx: number, imageHeight: number, width: number, offset: number,
+                               selectionStart: number, selectionEnd: number, orfHeight: number): void {
     if (displayedRegion === null) {
       return;
     }
     const regionIndex: number = displayedRegion.idx;
     orfY = Math.max.apply(Math, borders.map((border) => border.height)) * 12 + LABEL_HEIGHT;
-    HEIGHT = height;
+    HEIGHT = orfHeight;
     // ORF centerline
-    const centerlineY = orfY + LABEL_HEIGHT + height / 2;
+    const centerlineY = orfY + LABEL_HEIGHT + orfHeight / 2;
     chart.append("line")
-    .attr("x1", 0)
+    .attr("x1", scale(displayedRegion.start))
     .attr("y1", centerlineY)
-    .attr("x2", width)
+    .attr("x2", scale(displayedRegion.end))
     .attr("y2", centerlineY)
     .attr("class", "centerline");
 
     // clusters
-    const barSize = 10;
-    const verticalBarGap = 2;
-    const clusterBars: d3.Selection<SVGGElement, ICluster, any, any> = chart.selectAll("g.cluster-bar-group")
+    const barSize = orfHeight / 2;
+    const verticalBarGap = orfHeight / 10;
+    const clusterBars: d3.Selection<SVGGElement, Area, any, any> = chart.selectAll(`g.${BAR_GROUP_CLASS}`)
         .data(borders)
-        .enter().append("g").attr("class", (d: ICluster) => (
-            d.kind === "candidatecluster"
-                ? `candidate-${d.product.split(" ")[2].replace("chemical_", "")}` // e.g. "candidate-hybrid"
-                : (d.kind === "subregion" && d.prefix.length === 0 // it isn't a sideloaded subregion
-                    ? `svgene-border-${d.tool}`
-                    : ""
-                  )
-        ))
-        .on("click", (d: ICluster) => {
+        .enter().append("g").attr("class", (d: Area) => `${BAR_GROUP_CLASS} ${d.css}`)
+        .on("click", (d: Area) => {
             if ($(`.${SELECTED_ORF_CLASS}`).length === allOrfs.length || !(d3event.ctrlKey || d3event.metaKey)) {
                 deselectOrfs();
             }
-            select_by_range(d.neighbouring_start, d.neighbouring_end);
+            select_by_range(d.neighbouringStart, d.neighbouringEnd);
             toggleCandidateClusterCollapsers(d);
+            if (d.otherSide !== undefined) {
+                select_by_range(d.otherSide.neighbouringStart, d.otherSide.neighbouringEnd);
+            }
         })
-        .on("dblclick", (d: ICluster) => {
-            select_by_range(d.neighbouring_start, d.neighbouring_end);
+        .on("dblclick", (d: Area) => {
+            select_by_range(d.neighbouringStart, d.neighbouringEnd);
             toggleCandidateClusterCollapsers(d);
-            change_view(d.neighbouring_start, d.neighbouring_end);
+            if (d.otherSide !== undefined) {
+                select_by_range(d.otherSide.neighbouringStart, d.otherSide.neighbouringEnd);
+                if (displayedRegion !== null) {
+                    change_view(displayedRegion.start, displayedRegion.end);
+                }
+            } else {
+                change_view(d.neighbouringStart, d.neighbouringEnd);
+            }
         });
+
     // background
-    clusterBars.append("rect")
-        .attr("width", (d) => scale(d.neighbouring_end) - scale(d.neighbouring_start))
+    clusterBars.filter((d) => d.kind === "protocluster").append("rect")
+        .attr("width", (d) => scale(d.neighbouringEnd) - scale(d.neighbouringStart)
+                              - (d.splitsInNeighbourhood() && d.neighbouringStart === 0 ? 1 : 0))
         .attr("height", barSize)
-        .attr("x", (d) => scale(d.neighbouring_start))
+        .attr("x", (d) => scale(d.neighbouringStart) + (d.splitsInNeighbourhood() && d.neighbouringStart === 0 ? 1 : 0))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
         .attr("opacity", "0.5")
-        .attr("class", (d) => (d.kind === "subregion" ? "cluster-background" : `cluster-background ${d.product} ${d.category}`))
+        .attr("class", (d) => `cluster-background ${d.product} ${d.category}`)
         .style("stroke-width", "0");
     // extent lines
-    clusterBars.append("line")
-        .attr("x1", (d) => scale(d.neighbouring_start))
+    clusterBars.filter((d) => d.kind === "protocluster").append("line")
+        .attr("x1", (d) => scale(d.neighbouringStart) + d.getWidthOffset())
         .attr("y1", (d) => d.height * (barSize + verticalBarGap) + offset + barSize / 2)
-        .attr("x2", (d) => scale(d.neighbouring_end))
+        .attr("x2", (d) => scale(d.neighbouringEnd))
         .attr("y2", (d) => d.height * (barSize + verticalBarGap) + offset + barSize / 2)
         .attr("class", "cluster-line");
     // rect containing first and last ORF triggering border detection
-    clusterBars.append("rect")
-        .attr("width", (d) => scale(d.end) - scale(d.start))
+    clusterBars.filter((d) => d.kind !== "protocluster" || d.containsCore()).append("rect")
+        .attr("width", (d) => scale(d.end) - scale(d.start) - d.getWidthOffset())
         .attr("height", barSize)
+        // start a tiny bit earlier for neighbourhood splits, due to lack of stroke
         .attr("x", (d) => scale(d.start))
         .attr("y", (d) => d.height * (barSize + verticalBarGap) + offset)
         .attr("class", (d) => (d.kind === "subregion"
@@ -213,21 +303,73 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
                                     : `cluster-core svgene-border-${d.tool}`)
                                  : `cluster-core ${d.product} ${d.category}`))
         .style("stroke", "black");
+
+    if (borders.some((border) => border.otherSide !== undefined)) {
+        // mask off the extra area on both sides
+        const dimensions = new Dimensions(width, imageHeight);
+        const splitAreas = clusterBars.filter((d) => d.otherSide !== undefined)
+            .each(function(d: Area) {
+                const y = d.height * (barSize + verticalBarGap) + offset;
+                let product = d.product;
+                let category = d.category;
+                if (d.otherSide !== undefined) {
+                    if (product === "") {
+                        product = d.otherSide.product;
+                    }
+                    if (category === "") {
+                        category = d.otherSide.category;
+                    }
+                }
+                const info = new CircularMarkerInfo(dimensions, 0, y, `${product} ${category}`);
+                const backTranslation = new Coordinates(1, 0);
+
+                let elementClass = `left-circular-marker cluster-core ${product} ${category}`;
+                d.transform = new Transform(1, 1, -1, y);
+
+                if (d.splitsInNeighbourhood()) {
+                    if (d.neighbouringStart === 0) { // this area is on the left
+                        info.barEnd = scale(d.neighbouringStart);
+                        d.transform.scale.x = -1;
+                        d.transform.translate.x = -2 * scale(d.neighbouringStart) - 1;
+                    } else {  // this area is on the right
+                        elementClass = elementClass.replace(/left/gi, "right");
+                        info.barEnd = scale(d.neighbouringEnd) + 1;
+                    }
+                } else {
+                    if (d.neighbouringStart === 0) {  // truncated on the left
+                        info.barEnd = scale(d.neighbouringStart);
+                        d.transform.scale.x = -1;
+                        d.transform.translate.x = -2 * scale(d.neighbouringStart) - 1;
+                    } else {  // truncated on the right
+                        elementClass = elementClass.replace(/left/gi, "right");
+                        info.barEnd = scale(d.neighbouringEnd);
+                    }
+                }
+                const marker = addCircularMarkerGroup(d3select(this), info, barSize, backTranslation, d.splitsInNeighbourhood())
+                    .style("transform", d.transform.toStyle())
+                    .attr("class", `${d3select(this).attr("class")} ${elementClass}`);
+                if (d.splitsInNeighbourhood()) {
+                    marker
+                        .attr("opacity", 0.5);
+                }
+            });
+    }
+
     // cluster name
     clusterBars.append("text")
-        .attr("x", (d) => scale((d.start + d.end) / 2))
-        .attr("y", (d) => (d.kind === "protocluster"
+        .attr("x", (d: Area) => scale((d.start + d.end) / 2))
+        .attr("y", (d: Area) => (d.kind === "protocluster"
                                             ? ((d.height - 1) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)
                                             : ((d.height) * (barSize + verticalBarGap) - verticalBarGap + barSize + offset)))
         .style("font-size", "xx-small")
         .attr("class", "clusterlabel")
         .attr("text-anchor", "middle")
         .style("pointer-events", "none")
-        .text((d) => (d.prefix + d.product.replace("_", " ")));
+        .text((d: Area) => (d.prefix + d.product.replace("_", " ")));
 
     // binding sites (must be drawn before ORFs to avoid overlaying them)
     const bindingSiteRadius = 3;
-    const bindingPinY = centerlineY - height / 2 - bindingSiteRadius * 1.5;
+    const bindingPinY = centerlineY - orfHeight / 2 - bindingSiteRadius * 1.5;
     const bindingSiteElements: d3.Selection<SVGGElement, IBindingSite, any, any> = chart.selectAll("g.svgene-binding-site")
         .data(sites.bindingSites)
         .enter().append("g")
@@ -243,38 +385,70 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
         .attr("r", bindingSiteRadius);
 
     // ORFs
-    const orfs: d3.Selection<SVGGElement, IOrf, any, any> = chart.selectAll("g.orf-group")
+    const orfs: d3.Selection<SVGGElement, Orf, any, any> = chart.selectAll(`g.${ORF_GROUP_CLASS}`)
         .data(allOrfs)
-        .enter().append("g").attr("class", "orf-group");
+        .enter().append("g")
+            .attr("class", (d: Orf) => `${ORF_GROUP_CLASS} ${SELECTED_ORF_CLASS} svgene-type-${d.type}-group`)
+            .attr("id", (d: Orf) => `u${idx}-region${regionIndex}-${tag_to_id(d.locusTag)}-${ORF_GROUP_CLASS}`);
     // hide the ORF centerline
     orfs.append("polygon")
         .attr("points", (d) => geneArrowPoints(d))
         .attr("class", "svgene-orf-bg")
-        .attr("id", (d) => `u${idx}-region${regionIndex}-${tag_to_id(d.locus_tag)}-svgeneorf-bg`)
+        .attr("id", (d) => `u${idx}-region${regionIndex}-${tag_to_id(d.locusTag)}-svgeneorf-bg`)
         .style("fill", "white");
     // draw the ORF itself
     orfs.append("polygon")
         .attr("points", (d) => geneArrowPoints(d))
         .attr("class", (d) => `svgene-type-${d.type} svgene-orf ${SELECTED_ORF_CLASS}`)
-        .attr("id", (d) => `u${idx}-region${regionIndex}-${tag_to_id(d.locus_tag)}-svgeneorf`)
+        .attr("id", (d) => `u${idx}-region${regionIndex}-${tag_to_id(d.locusTag)}-svgeneorf`)
+        .style("stroke", "none")
+        .style("stroke-width", "0")
+        .attr("opacity", "1");
+    // add the stroke path
+    orfs.append("path")
+        .attr("d", (d) => geneArrowPoints(d, true))
+        .attr("class", (d) => `svgene-type-${d.type} svgene-orf-border ${SELECTED_ORF_CLASS}-border`)
         .attr("opacity", "1");
 
+    orfs.filter((d: Orf) => d.isSplit()).each(function(d) {
+        const dimensions = new Dimensions(width, imageHeight);
+        const y = orfY + LABEL_HEIGHT + verticalOffset;
+        const verticalSize = orfY + LABEL_HEIGHT + HEIGHT - verticalOffset - y;
+        const info = new CircularMarkerInfo(dimensions, 0, y, d.type);
+        const backTranslation = new Coordinates(1, 2);
+
+        let elementClass = `circular-marker circular-marker-${d.getLocus()} left-circular-marker svgene-type-${d.type}`;
+        d.transform = new Transform(1, 1, 0, y);
+
+        if (d.start <= 1) { // post-origin side
+            info.barEnd = scale(d.start);
+            d.transform.scale.x = -1;
+            d.transform.translate.x = -2 * scale(d.start);
+        } else {  // pre-origin side
+            elementClass = elementClass.replace(/left/gi, "right");
+            info.barEnd = scale(d.end);
+        }
+        const marker = addCircularMarkerGroup(d3select(this), info, verticalSize, backTranslation)
+            .style("transform", d.transform.toStyle())
+            .attr("class", `${d3select(this).attr("class")} ${elementClass}`);
+    });
+
     // Resistance markers
-    const resistBarY = orfY + LABEL_HEIGHT + height + 2;
+    const resistBarY = orfY + LABEL_HEIGHT + orfHeight + 2;
     const resistBarHeight = 7;
-    const resistanceOrfs: d3.Selection<SVGElement, IOrf, any, any> = chart.selectAll("rect.svgene-resist")
-        .data(allOrfs.filter((d: IOrf) => d.resistance))
+    const resistanceOrfs: d3.Selection<SVGElement, Orf, any, any> = chart.selectAll("rect.svgene-resist")
+        .data(allOrfs.filter((d: Orf) => d.resistance))
         .enter().append("rect")
         .attr("class", "svgene-resistance")
-        .attr("width", (d: IOrf) => (scale(d.end) - scale(d.start)))
+        .attr("width", (d: Orf) => (scale(d.end) - scale(d.start)))
         .attr("height", resistBarHeight)
-        .attr("x", (d: IOrf) => scale(d.start))
+        .attr("x", (d: Orf) => scale(d.start))
         .attr("y", resistBarY);
 
     // mark ORFs that have resistance markers
-    for (const orf of allOrfs.filter((d: IOrf) => d.resistance)) {
-        const id = `#u${idx}-region${regionIndex}-${tag_to_id(orf.locus_tag)}-svgeneorf`;
-        const orfElement: d3.Selection<SVGElement, IOrf, any, any> = d3select(id);
+    for (const orf of allOrfs.filter((d: Orf) => d.resistance)) {
+        const id = `#u${idx}-region${regionIndex}-${tag_to_id(orf.locusTag)}-svgeneorf`;
+        const orfElement: d3.Selection<SVGElement, Orf, any, any> = d3select(id);
         orfElement.classed("svgene-resistance-orf", true);
     }
 
@@ -282,34 +456,34 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: IOrf[], borders: ICluster[],
     const ttaCodonElements: d3.Selection<SVGGElement, ITTACodon, any, any> = chart.selectAll("polyline.svgene-tta-codon")
         .data(sites.ttaCodons)
         .enter().append("polyline")
-        .attr("points", (d: ITTACodon) => ttaCodonPoints(d, height, orfY, offset))
+        .attr("points", (d: ITTACodon) => ttaCodonPoints(d, orfHeight, orfY, offset))
         .attr("class", "svgene-tta-codon");
 
     // ORF labels
-    const locusTags: d3.Selection<SVGGElement, IOrf, any, any> = chart.selectAll("text.svgene-locustag")
+    const locusTags: d3.Selection<SVGGElement, Orf, any, any> = chart.selectAll("text.svgene-locustag")
         .data(allOrfs)
         .enter().append("g")
         .attr("class", "svgene-locustag")
-        .attr("id", (d: IOrf) => `u${idx}-region${regionIndex}-${tag_to_id(d.locus_tag)}-label`);
+        .attr("id", (d: Orf) => `u${idx}-region${regionIndex}-${tag_to_id(d.locusTag)}-label`);
     // to ensure they always overlay any other information, add a background
     locusTags.append("rect")
-        .attr("x", (d: IOrf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
+        .attr("x", (d: Orf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
         .attr("y", orfY)
-        .attr("width", (d: IOrf) => d.locus_tag.length * 10)
+        .attr("width", (d: Orf) => d.getLocus().length * 10)
         .attr("height", LABEL_HEIGHT)
         .attr("class", "svgene-locustag-background");
     locusTags.append("text")
         // to prevent truncating locus tags, right-align labels after the midpoint
-        .attr("x", (d: IOrf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
-        .attr("text-anchor", (d: IOrf) => scale(d.start) < width / 2 ? "start" : "end")
+        .attr("x", (d: Orf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
+        .attr("text-anchor", (d: Orf) => scale(d.start) < width / 2 ? "start" : "end")
         .attr("y", orfY + LABEL_HEIGHT)
-        .text((d: IOrf) => d.locus_tag);
+        .text((d: Orf) => d.getLocus());
 
     // mark ORFs that contain TTA codons
     for (const tta of sites.ttaCodons) {
         for (const locus of tta.containedBy) {
-            const id = `#u${idx}-region${regionIndex}-${tag_to_id(locus)}-svgeneorf`;
-            const orf: d3.Selection<SVGElement, IOrf, any, any> = d3select(id);
+            const id = `#u${idx}-region${regionIndex}-${tag_to_id(locus)}-${ORF_GROUP_CLASS}`;
+            const orf: d3.Selection<SVGElement, Orf, any, any> = d3select(id);
             orf.classed("contains-tta-codon", true);
         }
     }
@@ -333,20 +507,82 @@ function drawSources(chart: any, sources: ISource[], region: IRegion, height: nu
         .data(sources.slice(0, -1))
         .enter();
     spacers.append("rect")
-        .attr("width", (d: ISource, i: number) => scale(sources[i + 1].recordStart) - scale(d.recordEnd))
-        .attr("height", height)
+        .attr("width", (d: ISource, i: number) => Math.max(1, scale(sources[i + 1].recordStart) - scale(d.recordEnd)))
+        .attr("height", y - height)
         .attr("x", (d: ISource) => scale(d.recordEnd))
-        .attr("y", y)
+        .attr("y", 0)
         .attr("class", "svgene-source-marker");
 
-    const names: d3.Selection<SVGGElement, ISource, any, any> = chart.selectAll("text.svgene-source-name")
-        .data(sources)
-        .enter()
-        .append("text")
-        .text((d: ISource, i: number) => d.name ? d.name : `Section ${i + 1}`)
-        .attr("class", "svgene-source-name")
-        .attr("x", (d: ISource) => scale(region.start + d.regionStart + (d.regionEnd - d.regionStart) / 2))
-        .attr("y", y + height);
+    const tickCount = 10;
+    let totalLength = 0;
+    for (const source of sources) {
+        totalLength += source.recordEnd - source.recordStart;
+    }
+    // clear the existing sources so they don't duplicate next redraw
+    sourceInfo.length = 0;
+
+    let index = 0;
+    for (const source of sources) {
+        // handle axial coordinate resets by converting from virtual/overflow coordinates
+        // back to the real coordinates
+        const wrapPoint = (index === 0 ? source.recordEnd + 1 : sources[index - 1].recordEnd);
+        index += 1;
+
+        // create the per-section scales and axes
+        const sourceScale = d3scaleLinear()
+            .domain([source.recordStart % wrapPoint, source.recordEnd % wrapPoint])
+            .range([scale(source.recordStart), scale(source.recordEnd)]);
+        const sourceAxis = d3axisBottom(sourceScale);
+
+        // attempt to have a proportional amount of ticks in each subaxis
+        const proportionateLength = (source.recordEnd - source.recordStart) / totalLength;
+        const ticksForThis = Math.max(2, Math.floor(tickCount * proportionateLength) * 2);
+        sourceScale.ticks(ticksForThis);
+        sourceAxis.ticks(ticksForThis);
+
+        // instantiate an object that we can bind to the SVG element to make transitions easier
+        sourceInfo.push(new SourceInfo(source, sourceScale, sourceAxis, wrapPoint, (y - height) / 0.8));
+        // then draw/append the element in the SVG
+        chart.selectAll("g.svgene-subaxis")
+            .data(sourceInfo)
+            .enter()
+            .append("g")
+                .attr("class", "svgene-subaxis")
+                .attr("transform", `translate(0,${(y - height / 0.8)})`)
+                .call(sourceAxis);
+    }
+}
+
+function pairBorders(borders: Area[]): boolean {
+    const mapping = new Map();
+    for (const border of borders) {
+        if (border.group) {
+            const existing = mapping.get(border.group) ?? [];
+            existing.push(border);
+            mapping.set(border.group, existing);
+        }
+    }
+    for (const group of mapping.values()) {
+        group[0].otherSide = group[1];
+        group[1].otherSide = group[0];
+    }
+    return mapping.size > 0;
+}
+
+function pairOrfs(orfs: Orf[]): boolean {
+    const mapping = new Map();
+    for (const orf of orfs) {
+        if (orf.group) {
+            const existing = mapping.get(orf.group) ?? [];
+            existing.push(orf);
+            mapping.set(orf.group, existing);
+        }
+    }
+    for (const group of mapping.values()) {
+        group[0].otherSide = group[1];
+        group[1].otherSide = group[0];
+    }
+    return mapping.size > 0;
 }
 
 /**
@@ -386,6 +622,13 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
         }
     }
 
+    const allOrfs = region.orfs.sort(sort_biosynthetic_orfs_last).map((o) => new Orf(o));
+    const allBorders: Area[] = (region.clusters ?? []).map((cluster) => (Area.fromInterface(cluster)));
+    const allSites: ISites = region.sites;
+    const containsPairedOrfs = pairOrfs(allOrfs);
+    const containsPairedBorders = pairBorders(allBorders);
+    const containsPairedElements = containsPairedOrfs || containsPairedBorders;
+
     const axisHeight = 20;
     const minimapHeight = 40;
     const clusterHeight = Math.max.apply(Math, region.clusters.map((border) => border.height)) * 12;
@@ -415,25 +658,39 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
     const width = $(`#${id}`).parent().width() || 700;
     container.selectAll("svg").remove();
     container.selectAll("div").remove();
+    const modifier = containsPairedElements ? 10 : 0;
     const chart = container.append("svg")
         .attr("height", realHeight)
         .attr("width", "100%")
         .attr("viewbox", `-1 0 ${width} ${realHeight}`);
 
-    const allOrfs: IOrf[] = [];
-    const allBorders: ICluster[] = [];
-    const allSites: ISites = region.sites;
-    allOrfs.push.apply(allOrfs, region.orfs.sort(sort_biosynthetic_orfs_last));
-    allBorders.push.apply(allBorders, region.clusters ? region.clusters : []);
+    if (containsPairedElements) {
+        const defs = chart.append("defs");
+        const fader = defs.append("linearGradient")
+            .attr("id", "cross-origin-region-gradient-fade")
+            .attr("x1", "0%")
+            .attr("x2", "100%")
+            .attr("y1", "0%")
+            .attr("y2", "0%");
+        fader.append("stop")
+            .attr("offset", "0%")
+            .style("stop-opacity", 0);
+        fader.append("stop")
+            .attr("offset", "50%")
+            .style("stop-opacity", .75);
+        fader.append("stop")
+            .attr("offset", "100%")
+            .style("stop-opacity", 1);
+    }
 
     const idx = uniqueID++;
     verticalOffset = height / 10;
     scale = d3scaleLinear()
         .domain([selectionStart, selectionEnd])
-        .range([0, width]);
+        .range([2 + modifier, width - 2 - modifier]);  // allow a little padding for any ticks/lines at the edge
     drawOrderedRegionOrfs(chart, allOrfs, allBorders, allSites,
-                          idx, height, width, verticalOffset,
-                          selectionStart, selectionEnd);
+                          idx, realHeight, width, verticalOffset,
+                          selectionStart, selectionEnd, height);
     if (region.label !== undefined) {
         chart.append("text")
             .text(region.label)
@@ -446,12 +703,14 @@ export function drawRegion(id: string, regionToDraw: IRegion, height: number,
             .attr("font-size", LABEL_HEIGHT);
       }
     axis = d3axisBottom(scale);
-    chart.append<SVGGElement>("g")
-        .attr("class", "svgene-axis")
-        .attr("transform", `translate(0,${(realHeight - minimapHeight - axisHeight - sourceHeight)})`)
-        .call(axis);
     if (region.sources) {
-        drawSources(chart, region.sources, region, sourceHeight * 0.8, width, realHeight - minimapHeight - axisHeight);
+        drawSources(chart, region.sources, region, sourceHeight * 0.8, width,
+                    realHeight - minimapHeight - axisHeight, selectionStart, selectionEnd);
+    } else {
+        chart.append<SVGGElement>("g")
+            .attr("class", "svgene-axis")
+            .attr("transform", `translate(0,${(realHeight - minimapHeight - axisHeight - sourceHeight)})`)
+            .call(axis);
     }
 
     createMinimap(chart, region.start, region.end, realHeight - minimapHeight / 2, minimapHeight, allOrfs, width);
@@ -482,7 +741,7 @@ function boundedValue(minValue: number, value: number, maxValue: number): number
  * @param fullWidth - the width of the main view
  */
 function createMinimap(chart: any, regionStart: number, regionEnd: number,
-                       centerline: number, minimapHeight: number, orfs: IOrf[],
+                       centerline: number, minimapHeight: number, orfs: Orf[],
                        fullWidth: number): void {
     if (!displayedRegion) {
         return;
@@ -502,16 +761,16 @@ function createMinimap(chart: any, regionStart: number, regionEnd: number,
         .attr("x2", minimapScale(regionEnd))
         .attr("y2", centerline)
         .attr("class", "centerline");
-    const minimapOrfs: d3.Selection<any, IOrf, any, any> = chart.selectAll("rect.svgene-minimap-orf")
+    const minimapOrfs: d3.Selection<any, Orf, any, any> = chart.selectAll("rect.svgene-minimap-orf")
         .data(orfs)
         .enter()
           .append("rect")
-            .attr("width", (d: IOrf) => minimapScale(d.end) - minimapScale(d.start))
+            .attr("width", (d: Orf) => minimapScale(d.end) - minimapScale(d.start))
             .attr("height", orfHeight)
-            .attr("x", (d: IOrf) => minimapScale(d.start))
+            .attr("x", (d: Orf) => minimapScale(d.start))
             .attr("y", centerline - orfHeight / 2)
-            .attr("class", (d: IOrf) => `svgene-type-${d.type} ${SELECTED_ORF_CLASS} svgene-minimap-orf`)
-            .attr("id", (d: IOrf) => `svgene-minimap-orf-${tag_to_id(d.locus_tag)}`);
+            .attr("class", (d: Orf) => `svgene-type-${d.type} ${SELECTED_ORF_CLASS} svgene-minimap-orf`)
+            .attr("id", (d: Orf) => `svgene-minimap-orf-${tag_to_id(d.locusTag)}`);
 
     const scaledRegionStart = minimapScale(regionStart);
     const scaledRegionEnd = minimapScale(regionEnd);
@@ -650,13 +909,13 @@ function multi_select(geneElement: JQuery<HTMLElement>): void {
     if (geneElement[0].classList.contains(SELECTED_ORF_CLASS)) {
         deselectOrfs(geneElement);
         // if it was the last one, reselect everything
-        if ($(`.${SELECTED_ORF_CLASS}`).length === 0) {
+        if ($(`.${ORF_GROUP_CLASS}.${SELECTED_ORF_CLASS}`).length === 0) {
             selectOrfs();
             removeExternalSelectedIndicators();
         }
     } else {
         // if it's the first, deselect everything else first
-        if ($(`.${SELECTED_ORF_CLASS}`).length === 0) {
+        if ($(`.${ORF_GROUP_CLASS}.${SELECTED_ORF_CLASS}`).length === 0) {
             deselectOrfs();
         }
         selectOrfs(geneElement);
@@ -687,7 +946,7 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     $(".legend-selected").removeClass("legend-selected");
 
     if (ev.ctrlKey || ev.metaKey) {
-        multi_select($(this));
+        multi_select($(this).filter(".svgene-orf"));
         return;
     }
     cdsSelector($(this));
@@ -732,8 +991,8 @@ function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = fal
     if (!displayedRegion) {
         return;
     }
-    const node: d3.Selection<any, IOrf, any, any> = d3selectAll(element.toArray());
-    const data: IOrf = node.datum();
+    const node: d3.Selection<any, Orf, any, any> = d3selectAll(element.toArray());
+    const data: Orf = node.datum();
     if (!skipFocusPanel) {
         const panelContent = $(`.focus-panel-content-${displayedRegion.anchor}`);
         panelContent.html(data.description).find(".collapser").click(toggleCollapserHandler);
@@ -746,6 +1005,9 @@ function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = fal
     } else {
         deselectOrfs();
         selectOrfs(element);
+        if (data.otherSide) {
+            selectOrfs($(`#${locusToFullId(data.otherSide.locusTag)}-${ORF_GROUP_CLASS}`));
+        }
     }
     toggleCDSCollapserMatchingElement(element, "cds");
 }
@@ -754,19 +1016,19 @@ function cdsSelector(element: JQuery<HTMLElement>, skipFocusPanel: boolean = fal
  * Adds event handlers to all visualisation elements
  */
 function createHandlers(): void {
-    $(".svgene-orf").mouseover(function(e) {
+    $(`.${ORF_GROUP_CLASS}`).mouseover(function(e) {
         let id = $(this).attr("id");
         if (typeof id === "undefined") {
             return;
         }
-        id = id.replace("-svgeneorf", "-label");
+        id = id.replace(`-${ORF_GROUP_CLASS}`, "-label");
         $("#" + id).show();
     }).mouseout(function(e) {
         let id = $(this).attr("id");
         if (typeof id === "undefined") {
             return;
         }
-        id = id.replace("-svgeneorf", "-label");
+        id = id.replace(`-${ORF_GROUP_CLASS}`, "-label");
         $("#" + id).hide();
     }).click(tooltip_handler);
     $(".svgene-textarea").click((event: JQuery.Event) => event.stopPropagation());
@@ -792,7 +1054,7 @@ function createHandlers(): void {
  *
  * @param cluster - the candidate cluster data for which to toggle related elements
  */
-function toggleCandidateClusterCollapsers(cluster: ICluster): void {
+function toggleCandidateClusterCollapsers(cluster: Area): void {
     // hide any open candidate cluster expanders
     toggleCollapser($(".collapser-level-candidate.expanded"));
     // then expand relevant expanders
@@ -807,9 +1069,9 @@ function toggleCandidateClusterCollapsers(cluster: ICluster): void {
  * @param level - the particular level of related elements to toggle (see antismash.common.html_renderer.collapser_start)
  */
 function toggleCDSCollapserMatchingElement(geneElement: JQuery<HTMLElement>, level: string): void {
-    const node: d3.Selection<any, IOrf, any, any> = d3selectAll(geneElement.toArray());
-    const data: IOrf = node.datum();
-    toggleCollapser($(`.collapser-target-${tag_to_id(data.locus_tag)}.collapser-level-${level}`));
+    const node: d3.Selection<any, Orf, any, any> = d3selectAll(geneElement.toArray());
+    const data: Orf = node.datum();
+    toggleCollapser($(`.collapser-target-${tag_to_id(data.getLocus())}.collapser-level-${level}`));
 }
 
 /**
@@ -827,9 +1089,9 @@ function hideCDSLevelCollapsers(): void {
  */
 function select_by_range(start: number, end: number): void {
     $(".legend-selected").removeClass("legend-selected");
-    $(".svgene-orf").each(function(index) {
-        const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
-        const data: IOrf = node.datum();
+    $(`.${ORF_GROUP_CLASS}`).each(function(index) {
+        const node: d3.Selection<any, Orf, any, any> = d3selectAll($(this).toArray());
+        const data: Orf = node.datum();
         if (start <= data.start && data.end <= end) {
             selectOrfs($(this));
             toggleCDSCollapserMatchingElement($(this), "candidate");
@@ -846,21 +1108,35 @@ function select_by_range(start: number, end: number): void {
  */
 function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
     const opacity = selected ? "1" : "0.5";
-    const d3orfs: d3.Selection<any, IOrf, any, any> = d3selectAll(orfs.toArray());
     // orfs here includes the minimap ORFs, so halve the number
     const allSelected = displayedRegion && orfs.length / 2 === displayedRegion.orfs.length;
     if (allSelected) {
         removeExternalSelectedIndicators();
     }
 
-    d3orfs.attr("opacity", opacity)
+    const d3orfs: d3.Selection<any, Orf, any, any> = d3selectAll(orfs.toArray());
+    // set visibility of orf collection
+    d3orfs.classed(SELECTED_ORF_CLASS, selected);
+    d3orfs.selectAll(".svgene-orf")
         .classed(SELECTED_ORF_CLASS, selected)
-        .each((data: IOrf) => {
-            d3selectAll(`#svgene-minimap-orf-${tag_to_id(data.locus_tag)}`)
+        .attr("opacity", opacity);
+    // ensure any attached circular markers have matching opacity and borders
+    d3orfs.selectAll(".circular-marker")
+        .attr("opacity", opacity);
+    d3orfs.selectAll(".circular-border")
+        .style("stroke-width", selected ? "1px" : "0")
+        .style("stroke", selected ? "black" : "none");
+    // and that outlines are enabled/disabled as appropriate
+    d3orfs.selectAll(".svgene-orf-border")
+        .style("stroke-width", selected ? "1px" : "0")
+        .style("stroke", selected ? "black" : "none");
+    d3orfs.each((data: Orf) => {
+            // update the minimap
+            d3selectAll(`#svgene-minimap-orf-${tag_to_id(data.locusTag)}`)
                 .attr("opacity", opacity)
                 .classed(SELECTED_ORF_CLASS, selected);
             // update domains related to this orf
-            const prefix = locusToFullId(data.locus_tag);
+            const prefix = locusToFullId(data.locusTag);
             if (selected) {  // not a toggle due to default state sync
                 $(`#${prefix}-domains`).show();
                 $(`.${prefix}-generic-domains`).show();
@@ -869,7 +1145,7 @@ function changeOrfSelectedState(orfs: JQuery<HTMLElement>, selected: boolean) {
                 $(`.${prefix}-generic-domains`).hide();
             }
             if (!allSelected) {
-                changeExternalSelectedIndicator(data.locus_tag, selected);
+                changeExternalSelectedIndicator(data.locusTag, selected);
             }
         });
 }
@@ -912,7 +1188,7 @@ function removeExternalSelectedIndicators() {
  */
 function selectOrfs(orfs?: JQuery<HTMLElement>) {
     if (typeof orfs === "undefined") {
-        orfs = $(".svgene-orf, .svgene-minimap-orf");
+        orfs = $(`.${ORF_GROUP_CLASS}, .svgene-minimap-orf`);
     }
     changeOrfSelectedState(orfs, true);
 }
@@ -925,7 +1201,7 @@ function selectOrfs(orfs?: JQuery<HTMLElement>) {
  */
 function deselectOrfs(orfs?: JQuery<HTMLElement>) {
     if (typeof orfs === "undefined") {
-        orfs = $(`.${SELECTED_ORF_CLASS}`);
+        orfs = $(`.${ORF_GROUP_CLASS}.${SELECTED_ORF_CLASS}`);
     }
     changeOrfSelectedState(orfs, false);
 }
@@ -949,7 +1225,7 @@ function legend_selector(this: HTMLElement, event: JQuery.Event) {
     } else {
         target = `.${originalID.replace("legend-", "svgene-")}`;
     }
-
+    target += "-group";
     if ($(this).hasClass("legend-selected")) {
         $(this).removeClass("legend-selected");
         deselectOrfs($(target));
@@ -978,8 +1254,8 @@ export function zoom_to_selection(event?: JQuery.Event) {
     let start = -1;
     let end = -1;
     $(`.${SELECTED_ORF_CLASS}`).each(function(index) {
-        const node: d3.Selection<any, IOrf, any, any> = d3selectAll($(this).toArray());
-        const data: IOrf = node.datum();
+        const node: d3.Selection<any, Orf, any, any> = d3selectAll($(this).toArray());
+        const data: Orf = node.datum();
         if (start === -1) {
             start = Math.min(data.start, data.end);
         } else {
@@ -1005,7 +1281,7 @@ export function zoom_to_selection(event?: JQuery.Event) {
  * @param changedByMinimap - whether the minimap also needs to have it's shown area updated, defaults to false
  */
 function change_view(start: number, end: number, changedByMinimap?: boolean) {
-    if (!displayedRegion) {
+    if (displayedRegion === null) {
         return;
     }
     let duration = 0;
@@ -1018,36 +1294,55 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
     scale.domain([start, end]);
     const midpoint = start + (end - start) / 2;
 
-    const orfs: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-orf,.svgene-orf-bg");
+    const orfs: d3.Selection<any, Orf, any, any> = d3selectAll(".svgene-orf,.svgene-orf-bg");
     orfs.transition().duration(duration)
-        .attr("points", (d) => geneArrowPoints(d));
+        .attr("points", (d: Orf) => geneArrowPoints(d));
+    const orfBorders: d3.Selection<any, Orf, any, any> = d3selectAll(".svgene-orf-border");
+    orfBorders.transition().duration(duration)
+        .attr("d", (d: Orf) => geneArrowPoints(d, true));
 
-    const orfLabels: d3.Selection<any, IOrf, any, any> = d3selectAll(".svgene-locustag *");
+    const orfLabels: d3.Selection<any, Orf, any, any> = d3selectAll(".svgene-locustag *");
     orfLabels.transition().duration(duration)
-        .attr("x", (d: IOrf) => d.start < midpoint ? scale(d.start) : scale(d.end))
-        .attr("text-anchor", (d: IOrf) => d.start < midpoint ? "start" : "end");
+        .attr("x", (d: Orf) => d.start < midpoint ? scale(d.start) : scale(d.end))
+        .attr("text-anchor", (d: Orf) => d.start < midpoint ? "start" : "end");
 
-    const interactionZones: d3.Selection<any, ICluster, any, any> = d3selectAll(".cluster-background");
+    const interactionZones: d3.Selection<any, Area, any, any> = d3selectAll(".cluster-background");
     interactionZones.transition().duration(duration)
-        .attr("width", (d) => scale(d.neighbouring_end) - scale(d.neighbouring_start))
-        .attr("x", (d) => scale(d.neighbouring_start));
-    const clusterBoxes: d3.Selection<any, ICluster, any, any> = d3selectAll(".cluster-core");
+        .attr("width", (d: Area) => scale(d.neighbouringEnd) - scale(d.neighbouringStart) - d.getWidthOffset())
+        .attr("x", (d: Area) => scale(d.neighbouringStart) + d.getWidthOffset());
+    const clusterBoxes: d3.Selection<any, Area, any, any> = d3selectAll(".cluster-core");
     clusterBoxes.transition().duration(duration)
-        .attr("width", (d) => scale(d.end) - scale(d.start))
-        .attr("x", (d) => scale(d.start));
-    const clusterLines: d3.Selection<any, ICluster, any, any> = d3selectAll(".cluster-line");
+        .attr("width", (d) => scale(d.end) - scale(d.start) - d.getWidthOffset())
+        .attr("x", (d) => scale(d.start) + d.getWidthOffset());
+    const clusterLines: d3.Selection<any, Area, any, any> = d3selectAll(".cluster-line");
     clusterLines.transition().duration(duration)
-        .attr("x1", (d) => scale(d.neighbouring_start))
-        .attr("x2", (d) => scale(d.neighbouring_end));
-    const clusterLabels: d3.Selection<SVGTextElement, ICluster, any, any> = d3selectAll(".clusterlabel");
+        .attr("x1", (d) => scale(d.neighbouringStart) + d.getWidthOffset())
+        .attr("x2", (d) => scale(d.neighbouringEnd));
+    const leftCircularMarkers: d3.Selection<any, Area | Orf, any, any>  = orfs.selectAll(".left-circular-marker");
+    leftCircularMarkers.transition().duration(duration)
+        .style("transform", (d: Area | Orf) => new Transform(
+            d.transform.scale.x,
+            d.transform.scale.y,
+            -(d instanceof Area ? scale(d.neighbouringStart) : scale(d.start)) - 13,
+            d.transform.translate.y,
+        ).toStyle());
+    const rightCircularMarkers: d3.Selection<any, Area | Orf, any, any> = orfs.selectAll(".right-circular-marker");
+    rightCircularMarkers.transition().duration(duration)
+        .style("transform", (d: Area | Orf) => new Transform(
+            d.transform.scale.x,
+            d.transform.scale.y,
+            d instanceof Area ? Math.max(0, scale(d.neighbouringEnd) - scale(end)) - 1 : scale(d.end) - scale(end),
+            d.transform.translate.y,
+        ).toStyle());
+    const clusterLabels: d3.Selection<SVGTextElement, Area, any, any> = d3selectAll(".clusterlabel");
     clusterLabels.transition().duration(duration)
         .attr("x", (d): number => scale((Math.max(d.start, start + 1) + Math.min(d.end, end - 1)) / 2));
-    const resistanceMarkers: d3.Selection<SVGElement, IOrf, any, any> = d3selectAll(".svgene-resistance");
+    const resistanceMarkers: d3.Selection<SVGElement, Orf, any, any> = d3selectAll(".svgene-resistance");
     // because both the data (because of the legend) and the resistance could be undefined
-    resistanceMarkers.filter((d: IOrf) => d && d.resistance === true)
+    resistanceMarkers.filter((d: Orf) => d && d.resistance === true)
         .transition().duration(duration)
-        .attr("x", (d: IOrf) => scale(d.start))
-        .attr("width", (d: IOrf) => scale(d.end) - scale(d.start));
+        .attr("x", (d: Orf) => scale(d.start))
+        .attr("width", (d: Orf) => scale(d.end) - scale(d.start));
     const ttaCodons: d3.Selection<SVGElement, ITTACodon, any, any> = d3selectAll(".svgene-tta-codon");
     ttaCodons.filter((d: ITTACodon) => typeof d !== "undefined")  // avoid the legend which isn't bound
         .transition().duration(duration)
@@ -1064,10 +1359,23 @@ function change_view(start: number, end: number, changedByMinimap?: boolean) {
             .attr("cx", x);
     });
 
-    if (axis !== null) {
-        d3select<any, any>(".svgene-axis")
-            .transition().duration(duration)
-            .call(axis);
+    const sourceMarkers: d3.Selection<SVGElement, ISource, any, any> = d3selectAll(".svgene-source-marker");
+    sourceMarkers.transition().duration(duration).attr("x", (d: ISource) => scale(d.recordEnd));
+    if (sourceInfo.length < 2) {
+        if (axis !== null) {
+            d3select<any, any>(".svgene-axis")
+                .transition().duration(duration)
+                .call(axis);
+        }
+    } else {
+        // update the range the subaxes cover
+        for (const info of sourceInfo) {
+            info.scale.range([scale(info.sourceData.recordStart), scale(info.sourceData.recordEnd)]);
+        }
+        // then transition them into their new positions
+        const subaxes: d3.Selection<any, any, any, any> = d3selectAll(".svgene-subaxis").each(function(d: any) {
+            d3select(this).transition().duration(duration).call(d.axis);
+        });
     }
 
     if (!changedByMinimap) {
@@ -1113,6 +1421,7 @@ export function resetZoom() {
 }
 
 let axis: d3.Axis<any> | null = null;
+const sourceInfo: SourceInfo[] = [];
 let minimapScale: d3.ScaleLinear<number, number> = d3scaleLinear().domain([0, 100]).range([0, 100]);
 let verticalOffset: number = 0;
 let orfY: number = 0;
