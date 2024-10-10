@@ -4,7 +4,7 @@
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {event as d3event, select as d3select} from "d3-selection";
 
-import {IRecord, IRegion} from "./dataStructures.js";
+import {IRecord, IRegion} from "./classes/pythonStructures.js";
 
 /**
  * Creates the overview SVG for the given record, showing the locations of each region

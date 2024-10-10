@@ -1,11 +1,11 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
+import {IRecord} from "./classes/pythonStructures.js";
 import {copyToClipboard} from "./clipboard.js";
 import {drawClusterblast, setClusterblastData} from "./clusterblast.js";
 import {toggleCollapserHandler} from "./collapsers.js";
 import {setComparisonData} from "./comparison.js";
-import {IRecord} from "./dataStructures.js";
 import {setupDetails} from "./detailsSection.js";
 import {drawDomainBubbleData} from "./domainBubbles.js";
 import {initDownloadButtons} from "./downloader.js";

@@ -2,7 +2,7 @@
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
 import {select as d3select} from "d3-selection";
-import {IOrf, IRegion} from "./dataStructures.js";
+import {IOrf, IRegion} from "./classes/pythonStructures.js";
 import {selectOrfsByLoci, tag_to_id} from "./viewer.js";
 
 interface IGene {

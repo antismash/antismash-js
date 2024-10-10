@@ -12,8 +12,8 @@ import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {select as d3select, selectAll as d3selectAll} from "d3-selection";
 import {arc as d3arc} from "d3-shape";
 
+import {IDomainsOrf, IDomainsRegion, IHmmerDomain, IModule} from "./classes/pythonStructures.js";
 import {clipboardCopyConstruct, copyToClipboard} from "./clipboard.js";
-import {IDomainsOrf, IDomainsRegion, IHmmerDomain, IModule} from "./dataStructures.js";
 import {locusToFullId, zoom_to_selection} from "./viewer.js";
 
 /** Options for generic domain drawing.

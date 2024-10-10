@@ -1,8 +1,8 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
+import {IOrf, IRegion} from "./classes/pythonStructures.js";
 import {copyToClipboard} from "./clipboard.js";
-import {IOrf, IRegion} from "./dataStructures.js";
 import {clearSelectedOrfs, locusSelectionHandler, resetZoom, selectOrfsByLoci, zoom_to_selection} from "./viewer.js";
 import {replaceWildcards, replaceWildcardsInText} from "./wildcards.js";
 

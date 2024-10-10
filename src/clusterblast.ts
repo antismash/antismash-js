@@ -3,7 +3,7 @@
 import {scaleLinear as d3scaleLinear} from "d3-scale";
 import {event as d3event, select as d3select} from "d3-selection";
 
-import {IOrf, IRegion} from "./dataStructures.js";
+import {IOrf, IRegion} from "./classes/pythonStructures.js";
 import {selectOrfsByLoci, tag_to_id} from "./viewer.js";
 import {replaceWildcardsInText} from "./wildcards.js";
 

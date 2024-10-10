@@ -1,7 +1,7 @@
 /* License: GNU Affero General Public License v3 or later
    A copy of GNU AGPL v3 should have been included in this software package in LICENSE.txt. */
 
-import {IOrf, IRegion} from "./dataStructures.js";
+import {IOrf, IRegion} from "./classes/pythonStructures.js";
 
 const LOCUS_ATTRIBUTE = "data-locus";
 const WILDCARD_CLASS = "wildcard-container";
