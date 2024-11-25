@@ -22,7 +22,6 @@ export { downloadSvg } from "./downloader.js";
 const visualiserRoot = "antismash.outputs.html.visualisers";
 
 let allRegions: any = null;
-let detailsData: any = null;
 let resultsData: any = null;
 
 /**
@@ -67,12 +66,12 @@ function switchToRegion() {
         if (allRegions[anchor] !== undefined) {
             drawRegion(`${anchor}-svg`, allRegions[anchor], 20);
         }
-        // draw details domains after the region so locus to id conversion works correctly
-        if ($(`#${anchor}-details-svg`).length > 0) {
-            drawDomains(anchor, detailsData.nrpspks[anchor], domainOrfHeight);
-        }
         setClusterblastData(anchor, resultsData[anchor]["antismash.modules.clusterblast"], allRegions[anchor]);
         if (anchor in resultsData) {
+            // draw details domains after the region so locus to id conversion works correctly
+            if (`${visualiserRoot}.nrps_pks_domains` in resultsData[anchor]) {
+                drawDomains(anchor, resultsData[anchor][`${visualiserRoot}.nrps_pks_domains`], domainOrfHeight);
+            }
             if ("antismash.modules.cluster_compare" in resultsData[anchor]) {
                 setComparisonData(anchor, resultsData[anchor]["antismash.modules.cluster_compare"], allRegions[anchor]);
             }
@@ -276,14 +275,12 @@ function addHelpTooltipHandlers() {
  * The entry point for all antiSMASH visualisation.
  *
  * @param regions - the data describing all regions within the output
- * @param details - the data describing details panel content per-module
  * @param results - the data describing additional visualisation results (e.g. gene table)
  * @param recordData - the data describing records/contigs and the genes within them
  */
-export function start(regions: any, details: any, results: any, records: IRecord[]) {
+export function start(regions: any, results: any, records: IRecord[]) {
     createRecordOverviews(records);
     allRegions = regions;
-    detailsData = details;
     resultsData = results;
     document.addEventListener("keyup", keyUpEvent, false);
     $("#download").click(toggle_downloadmenu);
