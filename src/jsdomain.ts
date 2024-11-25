@@ -326,9 +326,10 @@ function actualDrawDomains(id: string, region: IDomainsRegion, height: number): 
 function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
     let html = `${domain.type}<br>Location: ${domain.start}-${domain.end} AA<br>`;
     if (domain.napdoslink.length > 0) {
-        html += `<a href="${domain.napdoslink}" target="_blank">Analyze with NaPDoS</a><br>`;
+        html += `<a class="external-link" href="${domain.napdoslink}" target="_blank">Analyze with NaPDoS</a><br>`;
     }
-    html += `<a href="${domain.blastlink}" target="_blank">Run BlastP on this domain</a><br>`;
+    html += `<a class="external-link" href="${domain.blastlink}" target="_blank">Run BlastP on this domain</a><br>`;
+    }
     if (domain.predictions.length > 0) {
         html += "<dl><dt>Predictions:</dt>";
         for (const prediction of domain.predictions) {
