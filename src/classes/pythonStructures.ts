@@ -17,6 +17,7 @@ export interface IDomain extends IBaseDomain {  // maps to antismash.common.json
     readonly identifier: string;
     readonly dna_sequence: string;
     readonly abbreviation: string;
+    readonly extra_links?: string[];
 }
 
 export interface IHmmerDomain extends IBaseDomain {

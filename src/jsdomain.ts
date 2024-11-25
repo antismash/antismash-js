@@ -329,6 +329,8 @@ function generateTooltip(domain: IDomain, orf: INrpsPksOrf) {
         html += `<a class="external-link" href="${domain.napdoslink}" target="_blank">Analyze with NaPDoS</a><br>`;
     }
     html += `<a class="external-link" href="${domain.blastlink}" target="_blank">Run BlastP on this domain</a><br>`;
+    for (const link of domain.extra_links ?? []) {
+        html += `${link}</br>`;
     }
     if (domain.predictions.length > 0) {
         html += "<dl><dt>Predictions:</dt>";
