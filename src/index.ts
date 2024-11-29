@@ -15,7 +15,7 @@ import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawBindingSites} from "./tfbs.js";
-import {drawRegion} from "./viewer.js";
+import {drawRegion, locusSelectionHandler} from "./viewer.js";
 
 export { downloadSvg } from "./downloader.js";
 
@@ -345,5 +345,6 @@ export function start(regions: any, results: any, records: IRecord[]) {
     addHelpTooltipHandlers();
     $(".clipboard-copy").off("click").click(copyToClipboard);
     $(".collapser").click(toggleCollapserHandler);
+    $(".cds-selector").click(locusSelectionHandler);
     initDownloadButtons();
 }
