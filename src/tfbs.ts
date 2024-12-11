@@ -141,7 +141,7 @@ export function drawBindingSites(anchor: string, results: IHit[]) {
         svg.append("text")
             .attr("x", seqEnd + nearbyPadding)
             .attr("y", topRowY)
-            .attr("textLength", preSize)
+            .attr("textLength", postSize)
             .attr("class", "tfbs-sequence tfbs-hit-text-nearby")
             .text(hit.postsequence);
 
