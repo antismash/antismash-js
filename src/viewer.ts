@@ -946,7 +946,7 @@ function tooltip_handler(this: HTMLElement, ev: JQuery.Event): void {
     $(".legend-selected").removeClass("legend-selected");
 
     if (ev.ctrlKey || ev.metaKey) {
-        multi_select($(this).filter(".svgene-orf"));
+        multi_select($(this));
         return;
     }
     cdsSelector($(this));
