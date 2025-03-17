@@ -467,7 +467,7 @@ function drawOrderedRegionOrfs(chart: any, allOrfs: Orf[], borders: Area[], site
         .attr("id", (d: Orf) => `u${idx}-region${regionIndex}-${tag_to_id(d.locusTag)}-label`);
     // to ensure they always overlay any other information, add a background
     locusTags.append("rect")
-        .attr("x", (d: Orf) => scale(d.start) < width / 2 ? scale(d.start) : scale(d.end))
+        .attr("x", (d: Orf) => scale(d.start) < width / 2 ? scale(d.start) : (scale(d.end) - d.getLocus().length * 10))
         .attr("y", orfY)
         .attr("width", (d: Orf) => d.getLocus().length * 10)
         .attr("height", LABEL_HEIGHT)
