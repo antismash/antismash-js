@@ -234,7 +234,7 @@ function drawReference(chart: any, referenceData: IReferenceCluster, centerline:
     // but only if present will it be a link
     if (referenceURL) {
         const url = replaceWildcardsInText(referenceURL, referenceData);
-        linkParent = chart.append("a").attr("xlink:href", url);
+        linkParent = chart.append("a").attr("xlink:href", url).attr("target", "_blank");
     }
     // either way, a text element needs to exist for the description
     linkParent.append("text")
