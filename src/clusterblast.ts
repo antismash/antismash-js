@@ -322,7 +322,7 @@ function drawSVG(chart: any, svgID: string, query: IQueryCluster, data: IVariant
     } else {
         referencesToDraw = data.matches.slice();
     }
-    const width = region.end - region.start;
+    const width = query.end - query.start;
     const maxLength = Math.max(width, Math.max(...referencesToDraw.map((r) => (r.end - r.start))));
     const startHeight = 128 + labelHeight;
     // the distance between each reference centerline has to fit
@@ -332,8 +332,8 @@ function drawSVG(chart: any, svgID: string, query: IQueryCluster, data: IVariant
     let centerline = startHeight * 0.25;
     const regionNumber = region.idx;
     const imageWidth = 800;
-    const trimmedStart = region.orfs.reduce((prev, curr) => prev.start < curr.start ? prev : curr).start;
-    const trimmedEnd = region.orfs.reduce((prev, curr) => prev.start > curr.start ? prev : curr).end;
+    const trimmedStart = query.genes.reduce((prev, curr) => prev.start < curr.start ? prev : curr).start;
+    const trimmedEnd = query.genes.reduce((prev, curr) => prev.start > curr.start ? prev : curr).end;
     const queryBufferSize = 0.5 * (maxLength - (trimmedEnd - trimmedStart));
     const scale = d3scaleLinear()
         .domain([trimmedStart - queryBufferSize, trimmedEnd + queryBufferSize])
@@ -362,7 +362,7 @@ function drawSVG(chart: any, svgID: string, query: IQueryCluster, data: IVariant
 
     // ORFs
     const orfs: d3.Selection<SVGGElement, IClusterblastOrf, any, any> = queryGroup.selectAll("g.cb-svg-orf-group")
-        .data(region.orfs)
+        .data(query.genes)
         .enter().append("g").attr("class", "cb-svg-orf-group");
     // draw each ORF
     orfs.append("polygon")
