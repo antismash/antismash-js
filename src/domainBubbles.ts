@@ -193,6 +193,12 @@ function drawLegend(anchor: string, options: ILegendOptions): void {
       .attr("width", iconWidth)
       .attr("height", iconHeight)
       .append("g").attr("class", "bubble-domain-inactive");
+    inactives.append("circle")
+        .attr("class", "jsdomain-other module-bubble")
+        .attr("cx", center)
+        .attr("cy", center)
+        .attr("r", radius)
+        .style("opacity", "50%");
     inactives.append("line")
       .attr("x1", lower).attr("y1", lower)
       .attr("x2", upper).attr("y2", upper);
@@ -201,7 +207,7 @@ function drawLegend(anchor: string, options: ILegendOptions): void {
       .attr("x2", upper).attr("y2", lower);
     legend.append("div")
       .attr("class", "bubble-legend-text")
-      .text("Marks domains that are predicted to be inactive");
+      .text("Domains predicted to be inactive");
 
     // gene arrow
     legend.append("div").attr("class", "bubble-legend-icon").append("svg")
