@@ -15,9 +15,14 @@ import {createModuleHandlers, drawDomains, redrawDomains} from "./jsdomain.js";
 import {createRecordOverviews} from "./recordOverview.js";
 import {drawStructures} from "./structureDrawing.js";
 import {drawBindingSites} from "./tfbs.js";
-import {drawRegion, locusSelectionHandler} from "./viewer.js";
+import {drawRegion, locusSelectionHandler, locusToFullId} from "./viewer.js";
 
 export { downloadSvg } from "./downloader.js";
+export {createRecordOverviews} from "./recordOverview.js";
+export {createModuleHandlers} from "./jsdomain.js";
+export {drawStructures} from "./structureDrawing.js";
+export {setupDetails} from "./detailsSection.js";
+export {initDownloadButtons} from "./downloader.js";
 
 const visualiserRoot = "antismash.outputs.html.visualisers";
 
@@ -51,7 +56,7 @@ export function getAnchor(): string {
 /**
  * Updates all handlers and sets up all relevant visualisations for the current region.
  */
-function switchToRegion() {
+export function switchToRegion() {
     const domainOrfHeight = 25;
     setTimeout(() => {
         $(".page").hide();
@@ -192,17 +197,12 @@ function createOverviewHandlers() {
 }
 
 /**
- * An event handler for keyboard hotkeys.
+ * An event handler for tab-specific keyboard hotkeys.
  *
  * @param event - the keyboard event triggering the handler
  */
-function keyUpEvent(event: KeyboardEvent) {
+export function tabKeyUpEvent(event: KeyboardEvent) {
     const key = event.keyCode;
-    if (key === 37 || key === 87) {  // left arrow or w
-        previousRegion();
-    } else if (key === 39 || key === 69) {  // right arrow or e
-        nextRegion();
-    }
     // ignore tab-related keystrokes if no tabs available
     if (getAnchor() === "overview") {
         return;
@@ -218,6 +218,21 @@ function keyUpEvent(event: KeyboardEvent) {
     } else if (key === 77) {  // m
         $("input.show-module-domains").first().click();
     }
+}
+
+/**
+ * An event handler for keyboard hotkeys.
+ *
+ * @param event - the keyboard event triggering the handler
+ */
+function keyUpEvent(event: KeyboardEvent) {
+    const key = event.keyCode;
+    if (key === 37 || key === 87) {  // left arrow or w
+        previousRegion();
+    } else if (key === 39 || key === 69) {  // right arrow or e
+        nextRegion();
+    }
+    tabKeyUpEvent(event);
 }
 
 /**
@@ -260,7 +275,7 @@ function map_type_to_desc(type: string): string {
 /**
  * Adds handlers to show help tooltips for relevant elements
  */
-function addHelpTooltipHandlers() {
+export function addHelpTooltipHandlers() {
     $(".help-icon").off("click").click(function(this: HTMLElement) {
         $(this).toggleClass("active");
         $(this).next().toggle();
@@ -271,20 +286,19 @@ function addHelpTooltipHandlers() {
     });
 }
 
-/**
- * The entry point for all antiSMASH visualisation.
- *
- * @param regions - the data describing all regions within the output
- * @param results - the data describing additional visualisation results (e.g. gene table)
- * @param recordData - the data describing records/contigs and the genes within them
- */
-export function start(regions: any, results: any, records: IRecord[]) {
-    createRecordOverviews(records);
+export function setData(regions: any, results: any, records: IRecord[]) {
     allRegions = regions;
     resultsData = results;
-    document.addEventListener("keyup", keyUpEvent, false);
-    $("#download").click(toggle_downloadmenu);
+}
 
+export function createGeneralHandlers() {
+    $("#download").click(toggle_downloadmenu);
+    $(".clipboard-copy").off("click").click(copyToClipboard);
+    $(".collapser").click(toggleCollapserHandler);
+    $(".cds-selector").click(locusSelectionHandler);
+}
+
+export function createRegionNavigationHandlers() {
     $("#next-region").click(nextRegion);
     $("#prev-region").click(previousRegion);
 
@@ -317,16 +331,9 @@ export function start(regions: any, results: any, records: IRecord[]) {
         const label = $("#region-type");
         label.text(label.data("orig_text"));
     });
-    $(".comparison-selector").change(function() {
-        const id = ($(this).attr("id") || "nonexistant").replace("-selector", "");
-        $(`#${id}`).siblings().removeClass("comparison-container-active");
-        const kind = $(this).attr("data-tag");
-        $(`#${id}-${$(this).val()}`).addClass("comparison-container-active")
-            .find(`.heat-row-${kind}`).first().click();
-    });
-    $(".cluster-rules-header").click(toggle_cluster_rules);
-    switchToRegion();
-    createOverviewHandlers();
+}
+
+export function initialiseDomains() {
     $("input.domains-selected-only")
         .change(function() {
             // apply the change to all regions
@@ -339,12 +346,35 @@ export function start(regions: any, results: any, records: IRecord[]) {
         $("input.domains-expand-full").prop("checked", $(this).prop("checked"));
         redrawGenericDomains({reset: true, anchor: getAnchor()});
     });
+}
+
+/**
+ * The entry point for all antiSMASH visualisation.
+ *
+ * @param regions - the data describing all regions within the output
+ * @param results - the data describing additional visualisation results (e.g. gene table)
+ * @param recordData - the data describing records/contigs and the genes within them
+ */
+export function start(regions: any, results: any, records: IRecord[]) {
+    createRecordOverviews(records);
+    setData(regions, results, records);
+    document.addEventListener("keyup", keyUpEvent, false);
+    createGeneralHandlers();
+    createRegionNavigationHandlers();
+    $(".comparison-selector").change(function() {
+        const id = ($(this).attr("id") || "nonexistant").replace("-selector", "");
+        $(`#${id}`).siblings().removeClass("comparison-container-active");
+        const kind = $(this).attr("data-tag");
+        $(`#${id}-${$(this).val()}`).addClass("comparison-container-active")
+            .find(`.heat-row-${kind}`).first().click();
+    });
+    $(".cluster-rules-header").click(toggle_cluster_rules);
+    switchToRegion();
+    createOverviewHandlers();
+    initialiseDomains();
     createModuleHandlers();
     drawStructures();
     setupDetails(regions.order);
     addHelpTooltipHandlers();
-    $(".clipboard-copy").off("click").click(copyToClipboard);
-    $(".collapser").click(toggleCollapserHandler);
-    $(".cds-selector").click(locusSelectionHandler);
     initDownloadButtons();
 }
